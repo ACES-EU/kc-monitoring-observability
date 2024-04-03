@@ -4,12 +4,11 @@ In this project, we have created a system with three Quarkus microservices, a Pr
 
 We have created 5 Kafka topics - one with raw data and 4 with aggregated data.
 
-![image](https://github.com/AnejVovcak/prometheus-kafka-demo/assets/79155108/bbf48cf0-25e6-41bd-bc5f-f7ffa5ced14c)
+![309650708-bbf48cf0-25e6-41bd-bc5f-f7ffa5ced14c](https://github.com/ACES-EU/kc-monitoring-observability/assets/79155108/78cfed30-3e0e-459a-95f2-c63266b86089)
 
 This is how the stream of metrci_values_WMA looks like:
 
-![image](https://github.com/AnejVovcak/prometheus-kafka-demo/assets/79155108/56ca405f-8801-422c-bbaf-4a44f795d206)
-
+![309651477-56ca405f-8801-422c-bbaf-4a44f795d206](https://github.com/ACES-EU/kc-monitoring-observability/assets/79155108/c47d011b-d28c-46c1-b136-3fcd2323ed70)
 
 ## Components
 
@@ -29,7 +28,7 @@ This is how the stream of metrci_values_WMA looks like:
 
 - **Aggregation Demo**: A demo service that produces and consumes from the Kafka broker. It's accessible on port 8080. It represents 'Event store and stream processing'.
 
-![image.png](..%2Fimage.png)
+![image](https://github.com/ACES-EU/kc-monitoring-observability/assets/79155108/cbd5b3bd-3d7b-4931-8dd6-4ab5de463dce)
 
 ## Prerequisites
 
