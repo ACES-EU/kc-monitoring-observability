@@ -1,0 +1,93 @@
+version: '3'
+services:
+  quarkus_app_1:
+    image: anejvovcakjob/aces:microservice-demo
+    ports:
+      - "8082:8080"
+    environment:
+      - CUSTOMERS_API_URL=http://quarkus_app_2:8080/v1
+
+  quarkus_app_2:
+    image: anejvovcakjob/aces:microservice-demo
+    ports:
+      - "8083:8080"
+    environment:
+      - CUSTOMERS_API_URL=http://quarkus_app_3:8080/v1
+
+  quarkus_app_3:
+    image: anejvovcakjob/aces:microservice-demo
+    ports:
+      - "8084:8080"
+    environment:
+      - CUSTOMERS_API_URL=http://quarkus_app_1:8080/v1
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    ports:
+      - "9090:9090"
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: PLAINTEXT_INTERNAL://kafka:29092,PLAINTEXT_EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTERNAL://kafka:29092,PLAINTEXT_EXTERNAL://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  prometheus-kafka-adapter:
+    image: telefonica/prometheus-kafka-adapter:1.9.0
+    environment:
+      KAFKA_BROKER_LIST: kafka:29092
+      KAFKA_TOPIC: prometheus_raw_data
+      PORT: 8081
+    depends_on:
+      - kafka
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    ports:
+      - "8081:8080"
+    depends_on:
+      - kafka
+      - zookeeper
+
+  aggregation-demo:
+    image: anejvovcakjob/aces:aggregation-demo
+    environment:
+      - KUMULUZEE_STREAMING_KAFKA_PRODUCER_BOOTSTRAP-SERVERS=kafka:29092
+      - KUMULUZEE_STREAMING_KAFKA_CONSUMER_BOOTSTRAP-SERVERS=kafka:29092
+    ports:
+      - "8080:8080"
+    depends_on:
+      - kafka
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./deployment/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources

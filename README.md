@@ -80,4 +80,7 @@ kubectl wait pod --for=condition=Ready --all --timeout=300s -n ul
 # go to kafka-ui web page
 minikube service kafka-ui -n ul
 
+# go to grafana web page
+minikube service grafana -n ul
+
 ````
