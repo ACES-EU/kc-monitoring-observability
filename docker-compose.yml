@@ -44,6 +44,14 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
+  
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "8888:8888"
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
