@@ -1,0 +1,22 @@
+version: '3'
+services:
+  quarkus_app_1:
+    image: quarkus/metrics-demo-service-jvm
+    ports:
+      - "8080:8080"
+    environment:
+      - CUSTOMERS_API_URL=http://quarkus_app_2:8080/v1
+
+  quarkus_app_2:
+    image: quarkus/metrics-demo-service-jvm
+    ports:
+      - "8081:8080"
+    environment:
+      - CUSTOMERS_API_URL=http://quarkus_app_3:8080/v1
+
+  quarkus_app_3:
+    image: quarkus/metrics-demo-service-jvm
+    ports:
+      - "8082:8080"
+    environment:
+      - CUSTOMERS_API_URL=http://quarkus_app_1:8080/v1
