@@ -1,5 +1,7 @@
 # Prometheus kafka demo
 
+[![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 In this project, we have created a system with three Quarkus microservices, a Prometheus and Kafka instance and KumuluzEE Java aggregation microservice. Prometheus is collecting data from microservices and feds it into Kafka using the Prometheus Kafka Adapter. This data is then read by a KumuluzEE Java microservice, which also produces four topics that aggregate the collected data. Additionally, we have a Kafka UI for easy management of the Kafka system.
 
 We have created 5 Kafka topics - one with raw data and 4 with aggregated data.
@@ -84,3 +86,9 @@ minikube service kafka-ui -n ul
 minikube service grafana -n ul
 
 ````
+
+## License
+
+This project is licensed under the terms of the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
+
+© 2024 Faculty of Computer and Information Science, University of Ljubljana
