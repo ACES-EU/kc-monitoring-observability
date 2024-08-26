@@ -11,10 +11,6 @@ data:
       - job_name: prometheus
         static_configs:
           - targets: ['localhost:9090']
-      - job_name: 'quarkus-metrics'
-        metrics_path: 'q/metrics/prometheus'
-        static_configs:
-          - targets: [ 'quarkus_app_1:8080', 'quarkus_app_2:8080', 'quarkus_app_3:8080' ]
       - job_name: 'otel-collector'
         static_configs:
           - targets: ['otel-collector:8888']
@@ -83,6 +79,6 @@ data:
           ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
         authorization:
           credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
-    
+
     remote_write:
       - url: "http://prometheus-kafka-adapter:8081/receive"
