@@ -1,44 +1,44 @@
 version: '3'
 services:
-  quarkus_app_1:
-    image: anejvovcakjob/aces:microservice-demo
-    ports:
-      - "8082:8080"
-    environment:
-      - CUSTOMERS_API_URL=http://quarkus_app_2:8080/v1
+#  quarkus_app_1:
+#    image: anejvovcakjob/aces:microservice-demo
+#    ports:
+#      - "8082:8080"
+#    environment:
+#      - CUSTOMERS_API_URL=http://quarkus_app_2:8080/v1
+#
+#  quarkus_app_2:
+#    image: anejvovcakjob/aces:microservice-demo
+#    ports:
+#      - "8083:8080"
+#    environment:
+#      - CUSTOMERS_API_URL=http://quarkus_app_3:8080/v1
+#
+#  quarkus_app_3:
+#    image: anejvovcakjob/aces:microservice-demo
+#    ports:
+#      - "8084:8080"
+#    environment:
+#      - CUSTOMERS_API_URL=http://quarkus_app_1:8080/v1
+#
+#  prometheus:
+#    image: prom/prometheus:latest
+#    volumes:
+#      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+#    command:
+#      - '--config.file=/etc/prometheus/prometheus.yml'
+#    ports:
+#      - "9090:9090"
+#    depends_on:
+#      - prometheus-nats-adapter
 
-  quarkus_app_2:
-    image: anejvovcakjob/aces:microservice-demo
-    ports:
-      - "8083:8080"
-    environment:
-      - CUSTOMERS_API_URL=http://quarkus_app_3:8080/v1
-
-  quarkus_app_3:
-    image: anejvovcakjob/aces:microservice-demo
-    ports:
-      - "8084:8080"
-    environment:
-      - CUSTOMERS_API_URL=http://quarkus_app_1:8080/v1
-
-  prometheus:
-    image: prom/prometheus:latest
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-    ports:
-      - "9090:9090"
-    depends_on:
-      - prometheus-nats-adapter
-
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    command: [ "--config=/etc/otel-collector-config.yaml" ]
-    volumes:
-      - ./otel-collector.yaml:/etc/otel-collector-config.yaml
-    ports:
-      - "8888:8888"
+#  otel-collector:
+#    image: otel/opentelemetry-collector-contrib:latest
+#    command: [ "--config=/etc/otel-collector-config.yaml" ]
+#    volumes:
+#      - ./otel-collector.yaml:/etc/otel-collector-config.yaml
+#    ports:
+#      - "8888:8888"
 
   nats-server:
     image: nats:latest
@@ -53,31 +53,32 @@ services:
       - nats-server
     entrypoint: [ "/bin/sh", "-c", "while :; do sleep 10; done" ]
 
-  prometheus-nats-adapter:
-    image: quarkus/prometheus-nats-adapter-jvm
+  aggregation-service:
+    image: quarkus/aggregation-service-jvm
+    ports:
+      - "8085:8080"
     environment:
       - NATS_URL=nats://nats-server:4222
-      - quarkus.log.level=DEBUG
-    ports:
-      - "8081:8080"
     depends_on:
       - nats-server
 
-  aggregation-demo:
-    image: anejvovcakjob/aces:aggregation-demo
-    environment:
-      - KUMULUZEE_STREAMING_KAFKA_PRODUCER_BOOTSTRAP-SERVERS=kafka:29092
-      - KUMULUZEE_STREAMING_KAFKA_CONSUMER_BOOTSTRAP-SERVERS=kafka:29092
-    ports:
-      - "8080:8080"
+#  prometheus-nats-adapter:
+#    image: quarkus/prometheus-nats-adapter-jvm
+#    environment:
+#      - NATS_URL=nats://nats-server:4222
+#      - quarkus.log.level=DEBUG
+#    ports:
+#      - "8081:8080"
+#    depends_on:
+#      - nats-server
 
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    depends_on:
-      - prometheus
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - ./deployment/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
+#  grafana:
+#    image: grafana/grafana:latest
+#    ports:
+#      - "3000:3000"
+#    depends_on:
+#      - prometheus
+#    environment:
+#      - GF_SECURITY_ADMIN_PASSWORD=admin
+#    volumes:
+#      - ./deployment/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
