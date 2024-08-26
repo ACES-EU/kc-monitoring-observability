@@ -31,11 +31,18 @@
   </dependencyManagement>
 
   <dependencies>
-    <!-- Quarkus dependencies -->
+    <!-- Quarkus RESTEasy Reactive dependency -->
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy</artifactId>
+      <artifactId>quarkus-resteasy-reactive</artifactId>
     </dependency>
+
+    <!-- Jackson for JSON processing -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-health</artifactId>

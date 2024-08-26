@@ -29,6 +29,8 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - "9090:9090"
+    depends_on:
+      - prometheus-nats-adapter
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
@@ -55,6 +57,7 @@ services:
     image: quarkus/prometheus-nats-adapter-jvm
     environment:
       - NATS_URL=nats://nats-server:4222
+      - quarkus.log.level=DEBUG
     ports:
       - "8081:8080"
     depends_on:
