@@ -84,4 +84,4 @@ scrape_configs:
       credentials_file: /var/run/secrets/kubernetes.io/serviceaccount/token
 
 remote_write:
-  - url: "http://prometheus-kafka-adapter:8081/receive"
+  - url: "http://prometheus-nats-adapter:8080/receive"
