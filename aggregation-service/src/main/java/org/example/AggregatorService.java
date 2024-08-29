@@ -24,11 +24,9 @@ public class AggregatorService {
   @ConfigProperty(name = "aggregation.window.ms")
   long aggregationWindowMs;
 
-  @ConfigProperty(name = "aggregation.result.subject")
-  String resultSubject;
-
   @ConfigProperty(name = "nats.server.url")
   String natsServerUrl;
+
   private static final Logger LOG = Logger.getLogger(AggregatorService.class);
   private final Map<String, TopicAggregator> topicAggregators = new ConcurrentHashMap<>();
 
@@ -39,30 +37,56 @@ public class AggregatorService {
     natsConnection = Nats.connect(options);
     jetStream = natsConnection.jetStream();
 
+    //create a stream for the aggregation
+    // This is a one-time operation, so it's safe to call it every time the service starts
     StreamConfiguration streamConfig = StreamConfiguration.builder()
-      .name("prometheus")
-      .subjects("prometheus")
+      .name("metrics")
+      .subjects("prometheus.*", "aggregation.*")
       .storageType(StorageType.File)
       .build();
 
     try {
-      StreamInfo streamInfo = natsConnection.jetStreamManagement().getStreamInfo("prometheus");
-      LOG.info("Stream 'prometheus' already exists: " + streamInfo);
+      StreamInfo streamInfo = natsConnection.jetStreamManagement().getStreamInfo("metrics");
+      LOG.info("Stream 'metrics' already exists: " + streamInfo);
     } catch (Exception e) {
-      LOG.info("Creating stream 'prometheus'");
+      LOG.info("Creating stream 'metrics'");
       natsConnection.jetStreamManagement().addStream(streamConfig);
     }
+
+    // Subscribe to the wildcard subject to capture specific subjects
+    Dispatcher dispatcher = natsConnection.createDispatcher((msg) -> {
+
+      //if the subject is aggregation.* then ignore
+      if(msg.getSubject().startsWith("aggregation.")){
+        return;
+      }
+
+      String subject = msg.getSubject();
+      if (!topicAggregators.containsKey(subject)) {
+        topicAggregators.put(subject, new TopicAggregator(aggregationWindowMs));
+        LOG.info("Created TopicAggregator for subject: " + subject);
+      }
+
+      double dataPoint = Double.parseDouble(new String(msg.getData())); // Adjust parsing as needed
+      topicAggregators.get(subject).addDataPoint(dataPoint);
+    });
+
+    dispatcher.subscribe("prometheus.*");
+    dispatcher.subscribe("aggregation.*");
   }
 
-  @Scheduled(every = "1s")
+  @Scheduled(every = "10s")
   void aggregateAndPublish() {
     topicAggregators.forEach((subject, aggregator) -> {
       double average = aggregator.getAndResetAverage();
+      String aggregationSubject = "aggregation." + subject;
       String message = "Average for " + subject + ": " + average;
 
       try {
-        jetStream.publish(resultSubject, message.getBytes());
+        jetStream.publish(aggregationSubject, message.getBytes());
+        LOG.info("Published to " + aggregationSubject + ": " + message);
       } catch (IOException | JetStreamApiException e) {
+        LOG.error("Error publishing to " + aggregationSubject, e);
         throw new RuntimeException(e);
       }
     });
