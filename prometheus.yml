@@ -16,4 +16,4 @@ scrape_configs:
       - targets: [ 'quarkus_app_1:8080', 'quarkus_app_2:8080', 'quarkus_app_3:8080' ]
 
 remote_write:
-  - url: "http://prometheus-nats-adapter:8080/receive"
+  - url: "http://prometheus-nats-adapter:5000/receive"
