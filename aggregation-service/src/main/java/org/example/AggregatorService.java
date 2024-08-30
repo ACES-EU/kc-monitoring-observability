@@ -8,7 +8,9 @@ import io.nats.client.api.StreamInfo;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.example.config.NatsConfig;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
@@ -24,8 +26,8 @@ public class AggregatorService {
   @ConfigProperty(name = "aggregation.window.ms")
   long aggregationWindowMs;
 
-  @ConfigProperty(name = "nats.server.url")
-  String natsServerUrl;
+  @Inject
+  NatsConfig natsConfig;
 
   private static final Logger LOG = Logger.getLogger(AggregatorService.class);
   private final Map<String, TopicAggregator> topicAggregators = new ConcurrentHashMap<>();
@@ -33,33 +35,43 @@ public class AggregatorService {
   @PostConstruct
   void setup() throws IOException, InterruptedException, JetStreamApiException {
 
-    Options options = new Options.Builder().server(natsServerUrl).build();
+    Options options = new Options.Builder().server(natsConfig.url()).build();
     natsConnection = Nats.connect(options);
     jetStream = natsConnection.jetStream();
 
     //create a stream for the aggregation
     // This is a one-time operation, so it's safe to call it every time the service starts
     StreamConfiguration streamConfig = StreamConfiguration.builder()
-      .name("metrics")
-      .subjects("prometheus.*", "aggregation.*")
+      .name(natsConfig.stream())
+      .subjects(natsConfig.inputSubjectPrefix()+".>", natsConfig.outputSubjectPrefix() + ".>")
       .storageType(StorageType.File)
       .build();
 
     try {
-      StreamInfo streamInfo = natsConnection.jetStreamManagement().getStreamInfo("metrics");
-      LOG.info("Stream 'metrics' already exists: " + streamInfo);
+      StreamInfo streamInfo = natsConnection.jetStreamManagement().getStreamInfo(natsConfig.stream());
+
+      //check if the subjects are correct
+      if(!streamInfo.getConfig().getSubjects().contains(natsConfig.inputSubjectPrefix() + ".>")){
+        //add the subjects
+        LOG.info("Updating stream because of missing input subject " + natsConfig.stream());
+        natsConnection.jetStreamManagement().updateStream(streamConfig);
+      }
+
+      //also check if the subjects are correct
+      if(!streamInfo.getConfig().getSubjects().contains(natsConfig.outputSubjectPrefix() + ".>")){
+        //add the subjects
+        LOG.info("Updating stream because of missing output subject " + natsConfig.stream());
+        natsConnection.jetStreamManagement().updateStream(streamConfig);
+      }
+
+      LOG.info("Stream " + natsConfig.stream() + " already exists");
     } catch (Exception e) {
-      LOG.info("Creating stream 'metrics'");
+      LOG.info("Creating stream " + natsConfig.stream());
       natsConnection.jetStreamManagement().addStream(streamConfig);
     }
 
     // Subscribe to the wildcard subject to capture specific subjects
     Dispatcher dispatcher = natsConnection.createDispatcher((msg) -> {
-
-      //if the subject is aggregation.* then ignore
-      if(msg.getSubject().startsWith("aggregation.")){
-        return;
-      }
 
       String subject = msg.getSubject();
       if (!topicAggregators.containsKey(subject)) {
@@ -71,20 +83,19 @@ public class AggregatorService {
       topicAggregators.get(subject).addDataPoint(dataPoint);
     });
 
-    dispatcher.subscribe("prometheus.*");
-    dispatcher.subscribe("aggregation.*");
+    dispatcher.subscribe(natsConfig.inputSubjectPrefix() + ".>");
   }
 
   @Scheduled(every = "10s")
   void aggregateAndPublish() {
     topicAggregators.forEach((subject, aggregator) -> {
       double average = aggregator.getAndResetAverage();
-      String aggregationSubject = "aggregation." + subject;
+      String aggregationSubject = natsConfig.outputSubjectPrefix() + "." + subject;
       String message = "Average for " + subject + ": " + average;
 
       try {
         jetStream.publish(aggregationSubject, message.getBytes());
-        LOG.info("Published to " + aggregationSubject + ": " + message);
+//        LOG.info("Published to " + aggregationSubject + ": " + message);
       } catch (IOException | JetStreamApiException e) {
         LOG.error("Error publishing to " + aggregationSubject, e);
         throw new RuntimeException(e);
