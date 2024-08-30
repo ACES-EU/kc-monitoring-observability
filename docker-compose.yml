@@ -53,7 +53,6 @@ services:
       - NATS_URL=nats://nats-server:4222
       - NATS_STREAM=prometheus
       - NATS_SUBJECT=metrics
-      - FLASK_ENV=development
     ports:
       - "5000:5000"  # Expose the receiver service
     depends_on:

@@ -9,6 +9,11 @@ import logging
 
 app = Flask(__name__)
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('werkzeug')
+logger.setLevel(logging.INFO)
+
 
 async def ensure_stream_exists(js, stream_name, subject):
     logging.info(f"Ensuring stream '{stream_name}' exists.")
