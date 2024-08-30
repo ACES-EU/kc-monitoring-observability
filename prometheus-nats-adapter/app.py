@@ -6,6 +6,7 @@ from prometheus_pb2 import WriteRequest
 import os
 import snappy
 import logging
+import asyncio
 
 app = Flask(__name__)
 
@@ -22,8 +23,8 @@ async def ensure_stream_exists(js, stream_name, wildcard_subject):
         logging.info(f"Stream '{stream_name}' already exists.")
     except NotFoundError:
         # If the stream does not exist, create it with a wildcard subject
-        logging.info(f"Creating stream '{stream_name}' with subject '{wildcard_subject}'.>.")
-        await js.add_stream(StreamConfig(name=stream_name, subjects=[wildcard_subject+".>"]))
+        logging.info(f"Creating stream '{stream_name}' with subject '{wildcard_subject}.>'.")
+        await js.add_stream(StreamConfig(name=stream_name, subjects=[wildcard_subject + ".>"]))
 
 async def send_to_jetstream(nc, subject, data):
     logging.info("Connecting to JetStream.")
@@ -56,24 +57,6 @@ async def receive():
         write_request = WriteRequest()
         write_request.ParseFromString(raw_data)
 
-        # Extract the __name__ and instance values from labels
-        instance_value = None
-        metric_name_value = None
-
-        for label in write_request.timeseries[0].labels:
-            if label.name == "__name__":
-                metric_name_value = label.value
-            elif label.name == "instance":
-                instance_value = label.value
-
-        # Ensure both instance and metric name values are found
-        if not instance_value or not metric_name_value:
-            raise ValueError("Required labels '__name__' or 'instance' not found in the request.")
-
-        # Create the subject using the base subject, instance, and metric name
-        base_subject = os.getenv("NATS_SUBJECT", "metrics")
-        nats_subject = f"{base_subject}.{instance_value}.{metric_name_value}"
-        #nats_subject = base_subject+".*"
         # Connect to NATS
         logging.info("Connecting to NATS.")
         nats_url = os.getenv("NATS_URL", "nats://localhost:4222")
@@ -82,8 +65,26 @@ async def receive():
 
         logging.info("Connected to NATS.")
 
-        # Send the data to NATS JetStream
-        await send_to_jetstream(nc, nats_subject, str(write_request))
+        # Loop through each timeseries in the WriteRequest
+        for timeseries in write_request.timeseries:
+            metric_name_value = None
+
+            # Extract the __name__ value from labels
+            for label in timeseries.labels:
+                if label.name == "__name__":
+                    metric_name_value = label.value
+
+            # Ensure metric name value is found
+            if not metric_name_value:
+                logging.warning("Required labels '__name__' not found in the timeseries, skipping.")
+                continue
+
+            # Create the subject using the base subject and metric name
+            base_subject = os.getenv("NATS_SUBJECT", "metrics")
+            nats_subject = f"{base_subject}.{metric_name_value}"
+
+            # Send the individual timeseries to NATS JetStream
+            await send_to_jetstream(nc, nats_subject, str(timeseries))
 
         await nc.close()
 
