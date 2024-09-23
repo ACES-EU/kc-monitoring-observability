@@ -7,10 +7,72 @@ data:
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
+
     scrape_configs:
       - job_name: 'prometheus'
         static_configs:
           - targets: ['localhost:9090']
+
+      # Scrape kubelet metrics from all nodes
+      - job_name: 'kubelet'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_node_name]
+            action: replace
+            target_label: instance
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            regex: "node_collector_|kubelet_|node_.*"
+            action: keep
+
+      # Scrape metrics from the Kubernetes API server
+      - job_name: 'kube-apiserver'
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_namespace]
+            action: keep
+            regex: 'kube-apiserver;kube-system'
+
+      # Scrape metrics from the Kubernetes controller manager
+      - job_name: 'kube-controller-manager'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_namespace]
+            action: keep
+            regex: 'kube-controller-manager;kube-system'
+
+      # Scrape metrics from the Kubernetes scheduler
+      - job_name: 'kube-scheduler'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: endpoints
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_namespace]
+            action: keep
+            regex: 'kube-scheduler;kube-system'
+
+      # Scrape node metrics (node_exporter)
+      - job_name: 'node'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_node_name]
+            action: replace
+            target_label: instance
 
     remote_write:
       - url: "http://prometheus-nats-adapter:5000/receive"
