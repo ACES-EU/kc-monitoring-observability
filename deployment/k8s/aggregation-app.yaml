@@ -1,38 +1,43 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: aggregation-demo
+  name: aggregation-service
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: aggregation-demo
+      app: aggregation-service
   template:
     metadata:
       labels:
-        app: aggregation-demo
+        app: aggregation-service
     spec:
       containers:
-        - name: aggregation-demo
-          image: anejvovcakjob/aces:aggregation-demo
+        - name: aggregation-service
+          image: anejvovcakjob/aces:aggregation-service-jvm
           ports:
             - containerPort: 8080
           env:
-            - name: KUMULUZEE_STREAMING_KAFKA_PRODUCER_BOOTSTRAP_SERVERS
-              value: "my-cluster-kafka-bootstrap:9092"
-            - name: KUMULUZEE_STREAMING_KAFKA_CONSUMER_BOOTSTRAP_SERVERS
-              value: "my-cluster-kafka-bootstrap:9092"
+            - name: NATS_URL
+              value: "nats://nats-server:4222"
+            - name: NATS_STREAM
+              value: "prometheus"
+            - name: NATS_INPUT_SUBJECT_PREFIX
+              value: "metrics"
+            - name: NATS_OUTPUT_SUBJECT_PREFIX
+              value: "aggregated_metrics"
+
 
 ---
 
 apiVersion: v1
 kind: Service
 metadata:
-  name: aggregation-demo
+  name: aggregation-service
 spec:
   selector:
     app: aggregation-demo
   ports:
     - protocol: TCP
-      port: 8080
+      port: 8085
       targetPort: 8080
