@@ -72,7 +72,7 @@ services:
       - NATS_URL=nats://nats-server:4222
       - NATS_STREAM=prometheus
       - NATS_INPUT_SUBJECT_PREFIX=metrics
-      - NATS_OUTPUT_SUBJECT_PREFIX=aggregated-metrics
+      - NATS_OUTPUT_SUBJECT_PREFIX=aggregated_metrics
     depends_on:
       - nats-server
       - prometheus-nats-adapter

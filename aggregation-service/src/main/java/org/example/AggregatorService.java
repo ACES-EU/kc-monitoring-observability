@@ -14,6 +14,8 @@ import org.example.config.NatsConfig;
 import org.jboss.logging.Logger;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,10 +24,8 @@ public class AggregatorService {
 
   Connection natsConnection;
   private JetStream jetStream;
-
   @ConfigProperty(name = "aggregation.window.ms")
   long aggregationWindowMs;
-
   @Inject
   NatsConfig natsConfig;
 
@@ -39,27 +39,22 @@ public class AggregatorService {
     natsConnection = Nats.connect(options);
     jetStream = natsConnection.jetStream();
 
-    //create a stream for the aggregation
-    // This is a one-time operation, so it's safe to call it every time the service starts
+    // Create a stream for the aggregation
     StreamConfiguration streamConfig = StreamConfiguration.builder()
       .name(natsConfig.stream())
-      .subjects(natsConfig.inputSubjectPrefix()+".>", natsConfig.outputSubjectPrefix() + ".>")
+      .subjects(natsConfig.inputSubjectPrefix() + ".>", natsConfig.outputSubjectPrefix() + ".>")
       .storageType(StorageType.File)
       .build();
 
     try {
       StreamInfo streamInfo = natsConnection.jetStreamManagement().getStreamInfo(natsConfig.stream());
 
-      //check if the subjects are correct
-      if(!streamInfo.getConfig().getSubjects().contains(natsConfig.inputSubjectPrefix() + ".>")){
-        //add the subjects
+      if (!streamInfo.getConfig().getSubjects().contains(natsConfig.inputSubjectPrefix() + ".>")) {
         LOG.info("Updating stream because of missing input subject " + natsConfig.stream());
         natsConnection.jetStreamManagement().updateStream(streamConfig);
       }
 
-      //also check if the subjects are correct
-      if(!streamInfo.getConfig().getSubjects().contains(natsConfig.outputSubjectPrefix() + ".>")){
-        //add the subjects
+      if (!streamInfo.getConfig().getSubjects().contains(natsConfig.outputSubjectPrefix() + ".>")) {
         LOG.info("Updating stream because of missing output subject " + natsConfig.stream());
         natsConnection.jetStreamManagement().updateStream(streamConfig);
       }
@@ -79,8 +74,7 @@ public class AggregatorService {
         LOG.info("Created TopicAggregator for subject: " + subject);
       }
 
-      double dataPoint = Double.parseDouble(new String(msg.getData())); // Adjust parsing as needed
-      topicAggregators.get(subject).addDataPoint(dataPoint);
+      topicAggregators.get(subject).addDataPoint(new BigDecimal(new String(msg.getData())));
     });
 
     dispatcher.subscribe(natsConfig.inputSubjectPrefix() + ".>");
@@ -89,15 +83,13 @@ public class AggregatorService {
   @Scheduled(every = "10s")
   void aggregateAndPublish() {
     topicAggregators.forEach((subject, aggregator) -> {
-      double average = aggregator.getAndResetAverage();
-      String aggregationSubject = natsConfig.outputSubjectPrefix() + "." + subject;
-      String message = "Average for " + subject + ": " + average;
+      BigDecimal average = aggregator.getAndResetAverage();
 
       try {
-        jetStream.publish(aggregationSubject, message.getBytes());
-//        LOG.info("Published to " + aggregationSubject + ": " + message);
+        jetStream.publish(natsConfig.outputSubjectPrefix() + "." + subject, average.toString().getBytes());
+        LOG.info("Published aggregated data for subject " + subject + ": " + average);
       } catch (IOException | JetStreamApiException e) {
-        LOG.error("Error publishing to " + aggregationSubject, e);
+        LOG.error("Error publishing aggregated data for " + subject, e);
         throw new RuntimeException(e);
       }
     });
@@ -106,7 +98,7 @@ public class AggregatorService {
   private static class TopicAggregator {
     private final long windowMs;
     private long startTime;
-    private double sum = 0;
+    private BigDecimal sum = BigDecimal.ZERO;
     private int count = 0;
 
     public TopicAggregator(long windowMs) {
@@ -114,19 +106,19 @@ public class AggregatorService {
       this.startTime = System.currentTimeMillis();
     }
 
-    public synchronized void addDataPoint(double data) {
-      sum += data;
+    public synchronized void addDataPoint(BigDecimal data) {
+      sum = sum.add(data);
       count++;
     }
 
-    public synchronized double getAndResetAverage() {
-      double average = (count > 0) ? (sum / count) : 0;
+    public synchronized BigDecimal getAndResetAverage() {
+      BigDecimal average = count == 0 ? BigDecimal.ZERO : sum.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
       reset();
       return average;
     }
 
     private void reset() {
-      sum = 0;
+      sum = BigDecimal.ZERO;
       count = 0;
       startTime = System.currentTimeMillis();
     }
