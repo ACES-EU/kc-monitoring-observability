@@ -1,38 +1,30 @@
-replicaCount: 1
+prometheus:
+  image: prom/prometheus:latest
 
-image:
-  repository: ""
-  tag: ""
-  pullPolicy: IfNotPresent
+nats:
+  image: nats:latest
 
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+prometheusNatsAdapter:
+  image: anejvovcakjob/aces:prometheus-nats-adapter
+  natsUrl: nats://nats-server:4222
+  natsStream: prometheus
+  natsSubject: metrics
 
-serviceAccount:
-  create: true
-  automount: true
-  annotations: {}
-  name: ""
+aggregationService:
+  image: anejvovcakjob/aces:aggregation-service-jvm
+  natsUrl: nats://nats-server:4222
+  natsStream: prometheus
+  natsInputSubjectPrefix: metrics
+  natsOutputSubjectPrefix: aggregated_metrics
 
-podAnnotations: {}
-podLabels: {}
+grafana:
+  image: grafana/grafana:latest
+  gFSecurityAdminPassword: admin
 
-podSecurityContext: {}
-
-securityContext: {}
-
-service:
-  type: ClusterIP
-  port: 80
-
-resources: {}
-
-livenessProbe:
-  httpGet:
-    path: /
-    port: http
-readinessProbe:
-  httpGet:
-    path: /
-    port: http
+ottelCollector:
+  image: otel/opentelemetry-collector-contrib:latest
+  configMapName: otel-collector-config
+  configMapDataKey: otel-collector-config.yaml
+  port: 8888
+  volumeMountPath: /etc/otel-collector-config.yaml
+  volumeMountSubPath: otel-collector-config.yaml
