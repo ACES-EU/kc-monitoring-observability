@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nats-server
+  labels:
+    app: nats-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nats-server
+  template:
+    metadata:
+      labels:
+        app: nats-server
+    spec:
+      containers:
+        - name: nats
+          image: {{ .Values.nats.image }}
+          command: [ "nats-server" ]
+          args: [ "-js" ]
+          ports:
+            - containerPort: 4222
+              name: client
+            - containerPort: 8222
+              name: monitor
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nats-server
+spec:
+  selector:
+    app: nats-server
+  ports:
+    - name: client
+      port: 4222
+      targetPort: client
+    - name: monitor
+      port: 8222
+      targetPort: monitor

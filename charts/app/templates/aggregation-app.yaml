@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aggregation-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: aggregation-service
+  template:
+    metadata:
+      labels:
+        app: aggregation-service
+    spec:
+      containers:
+        - name: aggregation-service
+          image: {{ .Values.aggregationService.image }}
+          env:
+            - name: NATS_URL
+              value: {{ .Values.aggregationService.natsUrl }}
+            - name: NATS_STREAM
+              value: {{ .Values.aggregationService.natsStream }}
+            - name: NATS_INPUT_SUBJECT_PREFIX
+              value: {{ .Values.aggregationService.natsInputSubjectPrefix }}
+            - name: NATS_OUTPUT_SUBJECT_PREFIX
+              value: {{ .Values.aggregationService.natsOutputSubjectPrefix }}
+          ports:
+            - containerPort: 8080
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: aggregation-service
+spec:
+  selector:
+    app: aggregation-demo
+  ports:
+    - protocol: TCP
+      port: 8085
+      targetPort: 8080
