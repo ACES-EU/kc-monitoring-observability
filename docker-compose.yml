@@ -1,4 +1,3 @@
-version: '3'
 services:
   quarkus_app_1:
     image: anejvovcakjob/aces:microservice-demo
@@ -65,7 +64,7 @@ services:
     entrypoint: [ "/bin/sh", "-c", "while :; do sleep 10; done" ]
 
   aggregation-service:
-    image: quarkus/aggregation-service-jvm
+    image: anejvovcakjob/aces:aggregation-service-jvm
     ports:
       - "8085:8080"
     environment:
