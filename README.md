@@ -1,7 +1,7 @@
 # Monitoring and Observability component
 
 [![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Test & Build](https://github.com/ACES-EU/kc-monitoring-observability/actions/workflows/test_and_build.yaml/badge.svg?event=push)](https://github.com/ACES-EU/kc-monitoring-observability/actions/workflows/test_and_build.yaml)
+[![Test](https://github.com/ACES-EU/kc-monitoring-observability/actions/workflows/test.yml/badge.svg?event=push)](https://github.com/ACES-EU/kc-monitoring-observability/actions/workflows/test.yml)
 
 Monitoring and Observability is an ACES kernel component that delivers comprehensive monitoring and observability capabilities across various software stack layers, including edge, application, network, and cloud. In that, it ensures proactive issue identification and resolution, ultimately promoting smooth operations and optimal resource utilization. The ACES Monitoring and Observability component utilizes open-source tools to achieve comprehensive telemetry collection from ACES assets and instrumented applications. These assets, encompassing workloads, clusters, infrastructure elements, and applications, generate various data sources like metrics, logs, and traces. The collected data undergoes analysis for anomaly detection and alert generation. This processed information is then strategically distributed across all ACES components, facilitating real-time system-wide visibility for informed decision-making.
 
