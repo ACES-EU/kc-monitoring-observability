@@ -20,21 +20,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # Step 2: Set up Docker Compose
+      # Step 2: Check for active ports
+      - name: Check for active ports
+        run: |
+          echo "Listing active ports..."
+          sudo netstat -tuln
+
+      # Step 3: Set up Docker Compose
       - name: Set up Docker Compose
         uses: docker/setup-buildx-action@v1
 
-      # Step 3: Start Docker Compose
+      # Step 4: Start Docker Compose
       - name: Start Docker Compose services
         run: docker compose up -d
 
-      # Step 4: Wait for services to be healthy
+      # Step 5: Wait for services to be healthy
       - name: Wait for services to be healthy
         run: |
           echo "Waiting for services to be healthy..."
           sleep 60
 
-      # Step 5: Check if all services are running
+      # Step 6: Check if all services are running
       - name: Check Docker Compose service status
         run: |
           echo "Checking services' status..."
@@ -53,7 +59,7 @@ jobs:
             echo "All containers are up and running."
           fi
 
-      # Step 6: Tear down services after the test
+      # Step 7: Tear down services after the test
       - name: Tear down Docker Compose
         if: always()
         run: docker compose down
