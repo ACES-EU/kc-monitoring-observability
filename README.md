@@ -51,15 +51,11 @@ minikube start
 #create namespace ul
 kubectl create namespace ul
 
+# move to minikube context
+kubectl config use-context minikube
+
 # move the namespace to ul
 kubectl config set-context --current --namespace=ul
-
-# deploy the kafka and zookeeper
-kubectl create -f "https://strimzi.io/install/latest?namespace=ul" -n ul
-kubectl apply -f https://strimzi.io/examples/latest/kafka/kafka-persistent-single.yaml -n ul
-
-# wait for the kafka to be ready
-kubectl wait kafka/my-cluster --for=condition=Ready --timeout=300s -n ul
 
 # deploy the rest of the services
 kubectl apply -f deployment/k8s -n ul
@@ -67,12 +63,42 @@ kubectl apply -f deployment/k8s -n ul
 # wait for the services to be ready
 kubectl wait pod --for=condition=Ready --all --timeout=300s -n ul
 
-# go to kafka-ui web page
-minikube service kafka-ui -n ul
-
-# go to grafana web page
+# go to grafana web page (username: admin, password: admin)
 minikube service grafana -n ul
 
+# check logs of a service
+kubectl logs -f <service-name> -n ul
+```
+
+### Deploying and running the application in minikube with Helm
+
+You can deploy the application to minikube using the following commands:
+
+```shell script
+minikube delete --all
+
+minikube start
+
+#create namespace ul
+kubectl create namespace ul
+
+# move to minikube context
+kubectl config use-context minikube
+
+# move the namespace to ul
+kubectl config set-context --current --namespace=ul
+
+# deploy the rest of the services
+helm install monitoring-observability charts/app-0.1.0.tgz -n ul
+
+# wait for the services to be ready
+kubectl wait pod --for=condition=Ready --all --timeout=300s -n ul
+
+# go to grafana web page (username: admin, password: admin)
+minikube service grafana -n ul
+
+# check logs of a service
+kubectl logs -f <service-name> -n ul
 ```
 
 ## Demonstration
@@ -102,13 +128,11 @@ Finally, a Grafana dashboard with alerts is set up (assets available in `/demo-r
 
 - **Prometheus**: Monitoring and alerting toolkit. It's configured with a custom configuration file and accessible on port 9090. It's set up to scrape metrics from the dummy services.
 
-- **Kafka**: A distributed streaming platform. It's set up with a Zookeeper instance and accessible on port 9092.
+- **Nats Jetstream**: A NATS streaming server that is used for event dispatching. It's accessible on port 4222.
 
-- **Prometheus Kafka Adapter**: An adapter to push Prometheus metrics to Kafka. It's configured to connect to the Kafka broker and push data to the `prometheus_raw_data` topic.
+- **Prometheus Nats Adapter**: A service that reads metrics from Prometheus and dispatches them to NATS. It's accessible on port 5000.
 
-- **Kafka UI**: A user interface for Kafka for easy management. It's configured to connect to the Kafka broker and Zookeeper instance and accessible on port 8081.
-
-- **Aggregation Demo**: A demo service that produces and consumes from the Kafka broker. It's accessible on port 8080.
+- **Aggregation Service**: A service that produces and consumes from the Nats Jetstream. It's accessible on port 8085.
 
 - **OpenTelemetry collector**: Exposes a telemetry collection endpoint that is fed into the system. Exposed on port 8888.
 

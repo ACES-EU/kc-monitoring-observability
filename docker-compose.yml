@@ -21,6 +21,14 @@ services:
     environment:
       - CUSTOMERS_API_URL=http://quarkus_app_1:8080/v1
 
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./otel-collector.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "8888:8888"
+
   prometheus:
     image: prom/prometheus:latest
     volumes:
@@ -29,65 +37,45 @@ services:
       - '--config.file=/etc/prometheus/prometheus.yml'
     ports:
       - "9090:9090"
-
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    environment:
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT_INTERNAL:PLAINTEXT,PLAINTEXT_EXTERNAL:PLAINTEXT
-      KAFKA_LISTENERS: PLAINTEXT_INTERNAL://kafka:29092,PLAINTEXT_EXTERNAL://0.0.0.0:9092
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT_INTERNAL://kafka:29092,PLAINTEXT_EXTERNAL://localhost:9092
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
-
     depends_on:
-      - zookeeper
-    ports:
-      - "9092:9092"
-  
-  otel-collector:
-    image: otel/opentelemetry-collector-contrib:latest
-    command: ["--config=/etc/otel-collector-config.yaml"]
-    volumes:
-      - ./otel-collector.yaml:/etc/otel-collector-config.yaml
-    ports:
-      - "8888:8888"
+      - prometheus-nats-adapter
 
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+  nats-server:
+    image: nats:latest
+    ports:
+      - "4222:4222"
+      - "8222:8222"  # Monitoring endpoint
+    command: "-js"  # Enable JetStream
 
-  prometheus-kafka-adapter:
-    image: telefonica/prometheus-kafka-adapter:1.9.0
+  prometheus-nats-adapter:
+    build: ./prometheus-nats-adapter  # Define Dockerfile location for the Python app
     environment:
-      KAFKA_BROKER_LIST: kafka:29092
-      KAFKA_TOPIC: prometheus_raw_data
-      PORT: 8081
+      - NATS_URL=nats://nats-server:4222
+      - NATS_STREAM=prometheus
+      - NATS_SUBJECT=metrics
+    ports:
+      - "5000:5000"  # Expose the receiver service
     depends_on:
-      - kafka
+      - nats-server
 
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    environment:
-      KAFKA_CLUSTERS_0_NAME: local
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-    ports:
-      - "8081:8080"
+  nats-cli:
+    image: natsio/nats-box:latest
     depends_on:
-      - kafka
-      - zookeeper
+      - nats-server
+    entrypoint: [ "/bin/sh", "-c", "while :; do sleep 10; done" ]
 
-  aggregation-demo:
-    image: anejvovcakjob/aces:aggregation-demo
-    environment:
-      - KUMULUZEE_STREAMING_KAFKA_PRODUCER_BOOTSTRAP-SERVERS=kafka:29092
-      - KUMULUZEE_STREAMING_KAFKA_CONSUMER_BOOTSTRAP-SERVERS=kafka:29092
+  aggregation-service:
+    image: quarkus/aggregation-service-jvm
     ports:
-      - "8080:8080"
+      - "8085:8080"
+    environment:
+      - NATS_URL=nats://nats-server:4222
+      - NATS_STREAM=prometheus
+      - NATS_INPUT_SUBJECT_PREFIX=metrics
+      - NATS_OUTPUT_SUBJECT_PREFIX=aggregated_metrics
     depends_on:
-      - kafka
+      - nats-server
+      - prometheus-nats-adapter
 
   grafana:
     image: grafana/grafana:latest

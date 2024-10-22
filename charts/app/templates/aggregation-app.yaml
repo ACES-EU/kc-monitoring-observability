@@ -14,18 +14,18 @@ spec:
     spec:
       containers:
         - name: aggregation-service
-          image: anejvovcakjob/aces:aggregation-service-jvm
-          ports:
-            - containerPort: 8080
+          image: {{ .Values.aggregationService.image }}
           env:
             - name: NATS_URL
-              value: "nats://nats-server:4222"
+              value: {{ .Values.aggregationService.natsUrl }}
             - name: NATS_STREAM
-              value: "prometheus"
+              value: {{ .Values.aggregationService.natsStream }}
             - name: NATS_INPUT_SUBJECT_PREFIX
-              value: "metrics"
+              value: {{ .Values.aggregationService.natsInputSubjectPrefix }}
             - name: NATS_OUTPUT_SUBJECT_PREFIX
-              value: "aggregated_metrics"
+              value: {{ .Values.aggregationService.natsOutputSubjectPrefix }}
+          ports:
+            - containerPort: 8080
 
 
 ---
