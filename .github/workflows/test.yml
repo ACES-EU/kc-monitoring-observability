@@ -1,4 +1,4 @@
-name: Docker Compose Test
+name: Test
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
 
       # Step 3: Start Docker Compose
       - name: Start Docker Compose services
-        run: docker-compose up -d
+        run: docker compose up -d
 
       # Step 4: Wait for services to be healthy
       - name: Wait for services to be healthy
@@ -38,13 +38,13 @@ jobs:
       - name: Check Docker Compose service status
         run: |
           echo "Checking services' status..."
-          docker-compose ps
+          docker compose ps
 
           # Count number of running containers
-          RUNNING_CONTAINERS=$(docker-compose ps | grep 'Up' | wc -l)
+          RUNNING_CONTAINERS=$(docker compose ps | grep 'Up' | wc -l)
 
           # Check if all containers are running (remove header line)
-          TOTAL_CONTAINERS=$(docker-compose ps | wc -l | xargs -I {} expr {} - 1)
+          TOTAL_CONTAINERS=$(docker compose ps | wc -l | xargs -I {} expr {} - 1)
 
           if [ "$RUNNING_CONTAINERS" -ne "$TOTAL_CONTAINERS" ]; then
             echo "Not all containers are up and running. Failing the test."
@@ -56,4 +56,4 @@ jobs:
       # Step 6: Tear down services after the test
       - name: Tear down Docker Compose
         if: always()
-        run: docker-compose down
+        run: docker compose down
