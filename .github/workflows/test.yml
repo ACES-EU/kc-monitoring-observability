@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - refact-jetstream
   pull_request:
 
 jobs:
