@@ -85,7 +85,7 @@ async def receive():
             nats_subject = f"{base_subject}.{metric_name_value}"
             timeseries_json = MessageToJson(timeseries)
             # Send the individual timeseries to NATS JetStream
-            await send_to_jetstream(nc, nats_subject, json.dumps(timeseries_json))
+            await send_to_jetstream(nc, nats_subject, timeseries_json)
 
         await nc.close()
 
