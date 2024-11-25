@@ -53,7 +53,7 @@ services:
       - NATS_STREAM=prometheus
       - NATS_SUBJECT=metrics
     ports:
-      - "5000:5000"  # Expose the receiver service
+      - "5001:5000"  # Expose the receiver service
     depends_on:
       - nats-server
 

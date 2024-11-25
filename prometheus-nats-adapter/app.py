@@ -3,9 +3,11 @@ from nats.aio.client import Client as NATS
 from nats.js.api import StreamConfig
 from nats.js.errors import NotFoundError
 from prometheus_pb2 import WriteRequest
+from google.protobuf.json_format import MessageToJson
 import os
 import snappy
 import logging
+import json
 import asyncio
 
 app = Flask(__name__)
@@ -64,7 +66,6 @@ async def receive():
         await nc.connect(nats_url)
 
         logging.info("Connected to NATS.")
-
         # Loop through each timeseries in the WriteRequest
         for timeseries in write_request.timeseries:
             metric_name_value = None
@@ -82,9 +83,9 @@ async def receive():
             # Create the subject using the base subject and metric name
             base_subject = os.getenv("NATS_SUBJECT", "metrics")
             nats_subject = f"{base_subject}.{metric_name_value}"
-
+            timeseries_json = MessageToJson(timeseries)
             # Send the individual timeseries to NATS JetStream
-            await send_to_jetstream(nc, nats_subject, str(timeseries))
+            await send_to_jetstream(nc, nats_subject, json.dumps(timeseries_json))
 
         await nc.close()
 
