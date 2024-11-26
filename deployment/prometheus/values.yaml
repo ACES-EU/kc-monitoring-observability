@@ -1,0 +1,27 @@
+server:
+  remoteWrite:
+  - url: "http://prometheus-nats-adapter:5000/receive"
+prometheus-node-exporter:
+  hostRootFsMount:
+    enabled: false
+persistence:
+  enabled: true
+  storageClass: "hostpath"
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+kubeScheduler:
+  enabled: true
+serverFiles:
+  rules:
+    groups:
+      - name: custom_rules
+        rules:
+        - record: aces_pod_cpu_utilization
+          expr: sum by (pod) (rate(container_cpu_usage_seconds_total[5m]))
+        - record: aces_pod_memory_utilization
+          expr: sum by (pod) (rate(container_memory_working_set_bytes[5m]))
+        - record: aces_device_disk_utilization
+          expr: (sum by (device) (rate(container_fs_writes_bytes_total[5m]))) + (sum by (device) (rate(container_fs_reads_bytes_total[5m])))
+        - record: aces_interface_network_utilization
+          expr: (sum by (interface) (rate(container_network_transmit_bytes_total[5m]))) + (sum by (interface) (rate(container_network_receive_bytes_total[5m])))
