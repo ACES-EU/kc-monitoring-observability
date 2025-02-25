@@ -14,6 +14,16 @@ scrape_configs:
     metrics_path: 'q/metrics/prometheus'
     static_configs:
       - targets: [ 'quarkus_app_1:8080', 'quarkus_app_2:8080', 'quarkus_app_3:8080' ]
+  - job_name: 'stealer'
+    metrics_path: 'stealer_metrics'
+    static_configs:
+      - targets: ['host.docker.internal:19091']  # Stealer metrics
+      # - targets: ['localhost:19091']  # Stealer metrics
+  - job_name: 'donor'
+    metrics_path: 'donor_metrics'
+    static_configs:
+      - targets: ['host.docker.internal:29092']  # Donor metrics
+      # - targets: ['localhost:29092']
 
 remote_write:
   - url: "http://prometheus-nats-adapter:5000/receive"
