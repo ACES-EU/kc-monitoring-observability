@@ -60,8 +60,8 @@ metadata:
 spec:
   type: NodePort
   ports:
-    - port: 3000
-      targetPort: 3000
-      nodePort: 30000
+    - port: {{ .Values.grafana.service.port }}
+      targetPort: {{ .Values.grafana.service.targetPort }}
+      nodePort: {{ .Values.grafana.service.nodePort }}
   selector:
     app: grafana

@@ -20,6 +20,10 @@ aggregationService:
 grafana:
   image: grafana/grafana:latest
   gFSecurityAdminPassword: admin
+  service:
+    port: 3000
+    targetPort: 3000
+    nodePort: 30000
 
 ottelCollector:
   image: otel/opentelemetry-collector-contrib:latest
