@@ -101,6 +101,21 @@ minikube service grafana -n ul
 kubectl logs -f <service-name> -n ul
 ```
 
+### Deploying and running the application in AWS
+
+You can deploy the application to AWS using the following commands (you need to have config.yaml file in the root directory):
+
+```shell script
+kubectl --kubeconfig=config.yaml get pods -n ul -v=6
+helm list --kubeconfig=config.yaml -n ul
+kubectl --kubeconfig=config.yaml config use-context ul@aces-1
+helm package charts/app
+helm upgrade app-0-1728301005 ./charts/app-0.2.0.tgz --kubeconfig=config.yaml -n ul
+kubectl --kubeconfig=config.yaml port-forward -n ul pod/prometheus-server-66476d778f-q8kct 9090:9090
+kubectl --kubeconfig=config.yaml logs -f -n ul prometheus-nats-adapter-5c6b7d4c8b-2qj5g
+kubectl port-forward svc/prometheus-service 9090:80 --kubeconfig=config.yaml -n ul
+```
+
 ## Demonstration
 
 For evaluation purposes, a system with three Quarkus microservices, an OpenTelemetry collector, a Prometheus and  instance and KumuluzEE Java aggregation microservice with an additional Grafana dashboard is created. Prometheus is collecting data from microservices and OpenTelemetry collector and feds it into NATS using the Prometheus NATS Adapter. This data is then read by a KumuluzEE Java microservice, which also produces four topics that aggregate the collected data.

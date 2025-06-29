@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quarkus-app-1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: quarkus-app-1
+  template:
+    metadata:
+      labels:
+        app: quarkus-app-1
+    spec:
+      containers:
+        - name: quarkus-app-1
+          image: {{ .Values.quarkusApp1.image }}
+          ports:
+            - containerPort: {{ .Values.quarkusApp1.containerPort }}
+          env:
+            - name: CUSTOMERS_API_URL
+              value: {{ .Values.quarkusApp1.customersApiUrl }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quarkus-app-1
+spec:
+  selector:
+    app: quarkus-app-1
+  ports:
+    - name: http
+      protocol: TCP
+      port: {{ .Values.quarkusApp1.port }}
+      targetPort: {{ .Values.quarkusApp1.targetPort }}
