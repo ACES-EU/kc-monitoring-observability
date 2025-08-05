@@ -20,6 +20,10 @@ aggregationService:
 grafana:
   image: grafana/grafana:latest
   gFSecurityAdminPassword: admin
+  service:
+    port: 3000
+    targetPort: 3000
+    nodePort: 30000
 
 ottelCollector:
   image: otel/opentelemetry-collector-contrib:latest
@@ -28,3 +32,24 @@ ottelCollector:
   port: 8888
   volumeMountPath: /etc/otel-collector-config.yaml
   volumeMountSubPath: otel-collector-config.yaml
+
+quarkusApp1:
+  image: anejvovcakjob/aces:microservice-demo
+  containerPort: 8080
+  customersApiUrl: http://quarkus-app-2:8083/v1
+  port: 8082
+  targetPort: 8080
+
+quarkusApp2:
+  image: anejvovcakjob/aces:microservice-demo
+  containerPort: 8080
+  customersApiUrl: http://quarkus-app-3:8084/v1
+  port: 8083
+  targetPort: 8080
+
+quarkusApp3:
+  image: anejvovcakjob/aces:microservice-demo
+  containerPort: 8080
+  customersApiUrl: http://quarkus-app-1:8082/v1
+  port: 8084
+  targetPort: 8080

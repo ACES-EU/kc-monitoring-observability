@@ -5,7 +5,7 @@
 
 Monitoring and Observability is an ACES kernel component that delivers comprehensive monitoring and observability capabilities across various software stack layers, including edge, application, network, and cloud. In that, it ensures proactive issue identification and resolution, ultimately promoting smooth operations and optimal resource utilization. The ACES Monitoring and Observability component utilizes open-source tools to achieve comprehensive telemetry collection from ACES assets and instrumented applications. These assets, encompassing workloads, clusters, infrastructure elements, and applications, generate various data sources like metrics, logs, and traces. The collected data undergoes analysis for anomaly detection and alert generation. This processed information is then strategically distributed across all ACES components, facilitating real-time system-wide visibility for informed decision-making.
 
-![architecture](docs/architecture.png)
+![architecture](https://github.com/user-attachments/assets/a3002ced-3a96-4780-acfc-9ff89af51eeb)
 
 As shown in the architecture, the component is composed of the following functionalities and subcomponents:
 
@@ -14,10 +14,10 @@ As shown in the architecture, the component is composed of the following functio
 |Monitoring and Observability component|Instrumentation & export|Instruments the applications and exports the metrics, logs, telemetry.|OpenTelemetry API/SDK and collector (instrumentation, exporter), KumuluzEE, KumuluzEE Metrics Extension|
 | |Telemetry collector|A proxy to receive, process and export telemetry data to the monitoring backend.|OpenTelemetry collector|
 | |Monitoring system|Monitoring backend, ingression of metrics, anomaly detection, alerting, analysis, and visualization.|Prometheus|
-| |Forwarder|Ingests/converts monitoring and telemetry data and dispatches them to the event store/processing.|prometheus-kafka-adapter|
-| |ETL/stream aggregation|Data aggregation and transformation service.|KumuluzEE, Kafka Java Client|
+| |Forwarder|Ingests/converts monitoring and telemetry data and dispatches them to the event store/processing.|prometheus-nats-adapter|
+| |ETL/stream aggregation|Data aggregation and transformation service.|KumuluzEE, jnats NATS Java Client|
 | |Visualization|Monitoring and observability data visualization and analysis.|Grafana|
-|Event store and stream processing||Raw and aggregated event and metric/telemetry dispatch to other ACES components.|Kafka, Zookeper, Kafka UI, NATS Jetstream|
+|Event store and stream processing||Raw and aggregated event and metric/telemetry dispatch to other ACES components.|NATS Jetstream|
 
 
 ## Prerequisites
@@ -101,19 +101,28 @@ minikube service grafana -n ul
 kubectl logs -f <service-name> -n ul
 ```
 
+### Deploying and running the application in AWS
+
+You can deploy the application to AWS using the following commands (you need to have config.yaml file in the root directory):
+
+```shell script
+kubectl --kubeconfig=config.yaml get pods -n ul -v=6
+helm list --kubeconfig=config.yaml -n ul
+kubectl --kubeconfig=config.yaml config use-context ul@aces-1
+helm package charts/app
+helm upgrade app-0-1728301005 ./charts/app-0.2.0.tgz --kubeconfig=config.yaml -n ul
+kubectl --kubeconfig=config.yaml port-forward -n ul pod/prometheus-server-66476d778f-q8kct 9090:9090
+kubectl --kubeconfig=config.yaml logs -f -n ul prometheus-nats-adapter-5c6b7d4c8b-2qj5g
+kubectl port-forward svc/prometheus-service 9090:80 --kubeconfig=config.yaml -n ul
+```
+
 ## Demonstration
 
-For evaluation purposes, a system with three Quarkus microservices, an OpenTelemetry collector, a Prometheus and Kafka instance and KumuluzEE Java aggregation microservice with an additional Grafana dashboard is created. Prometheus is collecting data from microservices and OpenTelemetry collector and feds it into Kafka using the Prometheus Kafka Adapter. This data is then read by a KumuluzEE Java microservice, which also produces four topics that aggregate the collected data. Additionally, we have a Kafka UI for easy management of the Kafka system.
+For evaluation purposes, a system with three Quarkus microservices, an OpenTelemetry collector, a Prometheus and  instance and KumuluzEE Java aggregation microservice with an additional Grafana dashboard is created. Prometheus is collecting data from microservices and OpenTelemetry collector and feds it into NATS using the Prometheus NATS Adapter. This data is then read by a KumuluzEE Java microservice, which also produces four topics that aggregate the collected data.
 
-We have created 5 Kafka topics - one with raw data and 4 with aggregated data.
+We have created a NATS stream named `prometheus`. It contains two types of topics: the ones with raw data (`metrics.*`) and the ones with aggregated data (`aggregated_metrics.*`).
 
-![kafka topics](docs/kafka-topics.png)
-
-This is how the stream of metrcic_values_WMA looks like:
-
-![aggregation](docs/aggregation.png)
-
-Finally, a Grafana dashboard with alerts is set up (assets available in `/demo-resources` directory):
+When deployed we can see a Grafana dashboard (assets available in `/demo-resources` directory):
 
 ![dasboard](docs/dashboard.png)
 
