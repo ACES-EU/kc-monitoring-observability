@@ -16,7 +16,9 @@ scrape_configs:
       - targets: [ 'quarkus_app_1:8080', 'quarkus_app_2:8080', 'quarkus_app_3:8080' ]
   - job_name: 'orchestration-library'
     static_configs:
-      - targets: ['localhost:8000']
+    - targets: ['host.docker.internal:30015']
+      # - targets: ['localhost:30015']
+      # - targets: ['localhost:8000']
   # - job_name: 'stealer'
   #   metrics_path: 'stealer_metrics'
   #   static_configs:
