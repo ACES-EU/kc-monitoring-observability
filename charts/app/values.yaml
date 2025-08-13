@@ -19,10 +19,20 @@ aggregationService:
 
 grafana:
   image: grafana/grafana:latest
+  gFSecurityAdminUser: admin
   gFSecurityAdminPassword: admin
   service:
+    name: grafana
     port: 3000
     targetPort: 3000
+    nodePort: 30001
+  
+nginxReverseProxy:
+  image: nginx:latest
+  configMapName: nginx-reverse-proxy-config
+  service:
+    port: 8080
+    targetPort: 8080
     nodePort: 30000
 
 ottelCollector:

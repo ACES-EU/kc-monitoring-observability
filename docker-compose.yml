@@ -97,7 +97,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./deployment/reverse-proxy/reverse-proxy-nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./deployment/reverse-proxy/nginx.conf:/etc/nginx/conf.d/default.conf
     depends_on:
       - grafana
 

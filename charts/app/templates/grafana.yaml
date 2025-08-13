@@ -15,28 +15,51 @@ data:
         isDefault: true
         editable: true
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  labels:
+    name: grafana-config
+data:
+  grafana.ini: |
+    [auth]
+    disable_login_form = true
+
+    [auth.proxy]
+    enabled = true
+    header_name = X-WEBAUTH-USER
+    header_property = username
+    auto_sign_up = true
+
+    [users]
+    auto_assign_org = true
+    auto_assign_org_role = Viewer
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grafana
+  name: {{ .Values.grafana.service.name }}
   labels:
-    app: grafana
+    app: {{ .Values.grafana.service.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grafana
+      app: {{ .Values.grafana.service.name }}
   template:
     metadata:
       labels:
-        app: grafana
+        app: {{ .Values.grafana.service.name }}
     spec:
       containers:
-        - name: grafana
+        - name: {{ .Values.grafana.service.name }}
           image: {{ .Values.grafana.image }}
           ports:
             - containerPort: 3000
           env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: {{ .Values.grafana.gFSecurityAdminUser }}
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: {{ .Values.grafana.gFSecurityAdminPassword }}
           volumeMounts:
@@ -44,19 +67,24 @@ spec:
               mountPath: /var/lib/grafana
             - name: grafana-datasource
               mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-config
+              mountPath: /etc/grafana/grafana.ini
       volumes:
         - name: grafana-storage
           emptyDir: {}
         - name: grafana-datasource
           configMap:
             name: grafana-datasource
+        - name: grafana-config
+          configMap:
+            name: grafana-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: grafana
+  name: {{ .Values.grafana.service.name }}
   labels:
-    app: grafana
+    app: {{ .Values.grafana.service.name  }}
 spec:
   type: NodePort
   ports:
@@ -64,4 +92,4 @@ spec:
       targetPort: {{ .Values.grafana.service.targetPort }}
       nodePort: {{ .Values.grafana.service.nodePort }}
   selector:
-    app: grafana
+    app: {{ .Values.grafana.service.name }}
