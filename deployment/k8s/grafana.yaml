@@ -68,7 +68,7 @@ spec:
             - name: grafana-datasource
               mountPath: /etc/grafana/provisioning/datasources
             - name: grafana-config
-              mountPath: /etc/grafana/grafana.ini
+              mountPath: /etc/grafana
       volumes:
         - name: grafana-storage
           emptyDir: {}
