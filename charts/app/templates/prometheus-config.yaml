@@ -30,6 +30,12 @@ data:
             regex: '.+:(.+)'
             target_label: port
             replacement: '$1'
+      
+      # Scrape Orchestration Library
+      - job_name: 'orchestration-library'
+        metrics_path: /metrics
+        static_configs:
+          - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
 
       # Scrape kubelet metrics from all nodes
       - job_name: 'kubelet'

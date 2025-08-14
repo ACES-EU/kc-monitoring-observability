@@ -15,6 +15,27 @@ data:
         isDefault: true
         editable: true
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-config
+  labels:
+    name: grafana-config
+data:
+  grafana.ini: |
+    [auth]
+    disable_login_form = true
+
+    [auth.proxy]
+    enabled = true
+    header_name = X-WEBAUTH-USER
+    header_property = username
+    auto_sign_up = true
+
+    [users]
+    auto_assign_org = true
+    auto_assign_org_role = Viewer
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -37,6 +58,8 @@ spec:
           ports:
             - containerPort: 3000
           env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: "admin"
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: "admin"
           volumeMounts:
@@ -44,12 +67,17 @@ spec:
               mountPath: /var/lib/grafana
             - name: grafana-datasource
               mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-config
+              mountPath: /etc/grafana
       volumes:
         - name: grafana-storage
           emptyDir: {}
         - name: grafana-datasource
           configMap:
             name: grafana-datasource
+        - name: grafana-config
+          configMap:
+            name: grafana-config
 ---
 apiVersion: v1
 kind: Service

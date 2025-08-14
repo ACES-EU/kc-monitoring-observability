@@ -1,42 +1,27 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-datasource
-  labels:
-    name: grafana-datasource
-data:
-  prometheus-datasource.yaml: |
-    apiVersion: 1
-    datasources:
-      - name: Prometheus
-        type: prometheus
-        access: proxy
-        url: http://prometheus-service:80
-        isDefault: true
-        editable: true
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: grafana
+  name: {{ .Values.grafana.service.name }}
   labels:
-    app: grafana
+    app: {{ .Values.grafana.service.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grafana
+      app: {{ .Values.grafana.service.name }}
   template:
     metadata:
       labels:
-        app: grafana
+        app: {{ .Values.grafana.service.name }}
     spec:
       containers:
-        - name: grafana
+        - name: {{ .Values.grafana.service.name }}
           image: {{ .Values.grafana.image }}
           ports:
             - containerPort: 3000
           env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: {{ .Values.grafana.gFSecurityAdminUser }}
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: {{ .Values.grafana.gFSecurityAdminPassword }}
           volumeMounts:
@@ -44,19 +29,24 @@ spec:
               mountPath: /var/lib/grafana
             - name: grafana-datasource
               mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-config
+              mountPath: /etc/grafana
       volumes:
         - name: grafana-storage
           emptyDir: {}
         - name: grafana-datasource
           configMap:
             name: grafana-datasource
+        - name: grafana-config
+          configMap:
+            name: grafana-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: grafana
+  name: {{ .Values.grafana.service.name }}
   labels:
-    app: grafana
+    app: {{ .Values.grafana.service.name  }}
 spec:
   type: NodePort
   ports:
@@ -64,4 +54,4 @@ spec:
       targetPort: {{ .Values.grafana.service.targetPort }}
       nodePort: {{ .Values.grafana.service.nodePort }}
   selector:
-    app: grafana
+    app: {{ .Values.grafana.service.name }}

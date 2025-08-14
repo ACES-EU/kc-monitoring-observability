@@ -89,7 +89,7 @@ kubectl config use-context minikube
 kubectl config set-context --current --namespace=ul
 
 # deploy the rest of the services
-helm install monitoring-observability charts/app-0.1.0.tgz -n ul
+helm upgrade --install monitoring-observability charts/app-0.1.0.tgz -n ul
 
 # wait for the services to be ready
 kubectl wait pod --for=condition=Ready --all --timeout=300s -n ul
@@ -109,8 +109,8 @@ You can deploy the application to AWS using the following commands (you need to 
 kubectl --kubeconfig=config.yaml get pods -n ul -v=6
 helm list --kubeconfig=config.yaml -n ul
 kubectl --kubeconfig=config.yaml config use-context ul@aces-1
-helm package charts/app
-helm upgrade app-0-1728301005 ./charts/app-0.2.0.tgz --kubeconfig=config.yaml -n ul
+helm package charts/app --destination charts
+helm upgrade --install monitoring-observability ./charts/app-0.3.0.tgz --kubeconfig=config.yaml -n ul
 kubectl --kubeconfig=config.yaml port-forward -n ul pod/prometheus-server-66476d778f-q8kct 9090:9090
 kubectl --kubeconfig=config.yaml logs -f -n ul prometheus-nats-adapter-5c6b7d4c8b-2qj5g
 kubectl port-forward svc/prometheus-service 9090:80 --kubeconfig=config.yaml -n ul
