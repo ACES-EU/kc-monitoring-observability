@@ -23,6 +23,9 @@ metadata:
     name: grafana-config
 data:
   grafana.ini: |
+    [security]
+    allow_embedding = true
+    
     [auth.proxy]
     enabled = true
     header_name = X-WEBAUTH-USER
