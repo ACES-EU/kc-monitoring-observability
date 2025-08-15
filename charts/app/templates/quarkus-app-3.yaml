@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: quarkus-app-3
-          image: anejvovcakjob/aces:microservice-demo
+          image: {{ .Values.quarkusApp3.image }}
           ports:
             - containerPort: {{ .Values.quarkusApp3.containerPort }}
           env:
