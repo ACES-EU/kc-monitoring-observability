@@ -35,7 +35,8 @@ data:
       - job_name: 'orchestration-library'
         metrics_path: /metrics
         static_configs:
-          - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
+          # - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
+          - targets: ['host.docker.internal:30015']
 
       # Scrape kubelet metrics from all nodes
       - job_name: 'kubelet'
@@ -85,6 +86,22 @@ data:
           - source_labels: [__meta_kubernetes_service_name, __meta_kubernetes_namespace]
             action: keep
             regex: 'kube-scheduler;kube-system'
+
+      # Scrape metrics from the Kubernetes cAdvisor
+      - job_name: 'kubelet-cadvisor'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_node_name]
+            action: replace
+            target_label: instance
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            regex: 'container_.*'
+            action: keep
 
       # Scrape node metrics (node_exporter)
       - job_name: 'node'
