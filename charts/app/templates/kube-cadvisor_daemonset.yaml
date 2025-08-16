@@ -1,3 +1,4 @@
+{{- if eq .Values.isProdEnvironment false }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -15,9 +16,9 @@ spec:
     spec:
       containers:
         - name: cadvisor
-          image: gcr.io/cadvisor/cadvisor:v0.49.1
+          image: {{ .Values.cadvisor.image }}
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.cadvisor.containerPort }}
           volumeMounts:
             - name: rootfs
               mountPath: /rootfs
@@ -44,3 +45,4 @@ spec:
         - name: docker
           hostPath:
             path: /var/lib/docker
+{{- end }}

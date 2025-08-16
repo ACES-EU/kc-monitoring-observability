@@ -83,6 +83,8 @@ data:
             regex: 'container_.*'
             action: keep
 
+      # Scrape metrics from cAdvisor(only for non-production environments)
+      {{- if eq .Values.isProdEnvironment false }}
       - job_name: 'cadvisor'
         kubernetes_sd_configs:
           - role: pod
@@ -93,6 +95,7 @@ data:
           - source_labels: [__meta_kubernetes_pod_ip]
             target_label: __address__
             replacement: $1:8080
+      {{- end }}
 
       # Scrape node metrics (node_exporter)
       - job_name: 'node'
@@ -128,8 +131,8 @@ data:
       - job_name: 'orchestration-library'
         metrics_path: /metrics
         static_configs:
-          # - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
-          - targets: ['host.docker.internal:30015']
+          - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
+          # - targets: ['host.docker.internal:30015']
 
     remote_write:
       - url: "http://prometheus-nats-adapter:5000/receive"

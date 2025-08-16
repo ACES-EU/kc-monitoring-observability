@@ -16,9 +16,9 @@ spec:
     spec:
       containers:
         - name: kube-state-metrics
-          image: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.10.0
+          image: {{ .Values.kubeStateMetrics.image }}
           ports:
-            - containerPort: 8080
+            - containerPort: {{ .Values.kubeStateMetrics.service.targetPort }}
 ---
 apiVersion: v1
 kind: Service
@@ -28,5 +28,5 @@ spec:
   selector:
     app: kube-state-metrics
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: {{ .Values.kubeStateMetrics.service.port }}
+      targetPort: {{ .Values.kubeStateMetrics.service.targetPort }}
