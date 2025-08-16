@@ -18,7 +18,7 @@ data:
         metrics_path: /v1/metrics
         static_configs:
           - targets:
-              - 'quarkus-app-2:8082'
+              - 'quarkus-app-1:8082'
               - 'quarkus-app-2:8083'
               - 'quarkus-app-3:8084'
         relabel_configs:
