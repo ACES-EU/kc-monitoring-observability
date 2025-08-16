@@ -12,31 +12,11 @@ data:
       - job_name: 'prometheus'
         static_configs:
           - targets: ['localhost:9090']
-
-      # Scrape Quarkus Applications
-      - job_name: 'quarkus-apps'
-        metrics_path: /v1/metrics
-        static_configs:
-          - targets:
-              - 'quarkus-app-1:8082'
-              - 'quarkus-app-2:8083'
-              - 'quarkus-app-3:8084'
-        relabel_configs:
-          - source_labels: [__address__]
-            regex: '(.+):.+'
-            target_label: app
-            replacement: '$1'
-          - source_labels: [__address__]
-            regex: '.+:(.+)'
-            target_label: port
-            replacement: '$1'
       
-      # Scrape Orchestration Library
-      - job_name: 'orchestration-library'
-        metrics_path: /metrics
+      # Scrape kube-state-metrics for pod resource metrics
+      - job_name: 'kube-state-metrics'
         static_configs:
-          # - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
-          - targets: ['host.docker.internal:30015']
+          - targets: ['kube-state-metrics:8080']
 
       # Scrape kubelet metrics from all nodes
       - job_name: 'kubelet'
@@ -103,6 +83,17 @@ data:
             regex: 'container_.*'
             action: keep
 
+      - job_name: 'cadvisor'
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: cadvisor
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: __address__
+            replacement: $1:8080
+
       # Scrape node metrics (node_exporter)
       - job_name: 'node'
         scheme: https
@@ -114,6 +105,31 @@ data:
           - source_labels: [__meta_kubernetes_node_name]
             action: replace
             target_label: instance
+
+      # Scrape Quarkus Applications
+      - job_name: 'quarkus-apps'
+        metrics_path: /v1/metrics
+        static_configs:
+          - targets:
+              - 'quarkus-app-1:8082'
+              - 'quarkus-app-2:8083'
+              - 'quarkus-app-3:8084'
+        relabel_configs:
+          - source_labels: [__address__]
+            regex: '(.+):.+'
+            target_label: app
+            replacement: '$1'
+          - source_labels: [__address__]
+            regex: '.+:(.+)'
+            target_label: port
+            replacement: '$1'
+      
+      # Scrape Orchestration Library
+      - job_name: 'orchestration-library'
+        metrics_path: /metrics
+        static_configs:
+          # - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
+          - targets: ['host.docker.internal:30015']
 
     remote_write:
       - url: "http://prometheus-nats-adapter:5000/receive"
