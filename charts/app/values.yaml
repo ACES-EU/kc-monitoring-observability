@@ -1,8 +1,21 @@
+isProdEnvironment: false
+
 prometheus:
   image: prom/prometheus:latest
 
 nats:
   image: nats:latest
+
+cadvisor:
+  image: gcr.io/cadvisor/cadvisor:v0.49.1
+  containerPort: 8080
+
+kubeStateMetrics:
+  image: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.16.0
+  service:
+    name: kube-state-metrics
+    port: 8080
+    targetPort: 8080
 
 prometheusNatsAdapter:
   image: anejvovcakjob/aces:prometheus-nats-adapter
