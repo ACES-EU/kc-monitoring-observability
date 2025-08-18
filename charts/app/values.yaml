@@ -35,7 +35,7 @@ grafana:
   gFSecurityAdminUser: admin
   gFSecurityAdminPassword: admin
   mountPaths:
-    storage: /var/lib/grafana
+    # storage: /var/lib/grafana
     datasource: /etc/grafana/provisioning/datasources
     config: /etc/grafana
     dashboardProviders: /etc/grafana/provisioning/dashboards
