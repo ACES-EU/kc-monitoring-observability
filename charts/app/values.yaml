@@ -34,6 +34,12 @@ grafana:
   image: grafana/grafana:latest
   gFSecurityAdminUser: admin
   gFSecurityAdminPassword: admin
+  mountPaths:
+    storage: /var/lib/grafana
+    datasource: /etc/grafana/provisioning/datasources
+    config: /etc/grafana
+    dashboardProviders: /etc/grafana/provisioning/dashboards
+    dashboards: /var/lib/grafana/dashboards
   service:
     name: grafana
     port: 3000

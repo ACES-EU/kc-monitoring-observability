@@ -25,21 +25,32 @@ spec:
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: {{ .Values.grafana.gFSecurityAdminPassword }}
           volumeMounts:
-            - name: grafana-storage
-              mountPath: /var/lib/grafana
+            # - name: grafana-storage
+            #   mountPath: {{ .Values.grafana.mountPaths.storage }}
             - name: grafana-datasource
-              mountPath: /etc/grafana/provisioning/datasources
+              mountPath: {{ .Values.grafana.mountPaths.datasource }}
             - name: grafana-config
-              mountPath: /etc/grafana
+              mountPath: {{ .Values.grafana.mountPaths.config }}
+            - name: grafana-dashboard-providers
+              mountPath: {{ .Values.grafana.mountPaths.dashboardProviders }}
+            - name: grafana-dashboards
+              mountPath: {{ .Values.grafana.mountPaths.dashboards }} # dashboard JSON files will be placed here
       volumes:
-        - name: grafana-storage
-          emptyDir: {}
+        # - name: grafana-storage
+        #   configMap:
+        #     name: grafana-storage
         - name: grafana-datasource
           configMap:
             name: grafana-datasource
         - name: grafana-config
           configMap:
             name: grafana-config
+        - name: grafana-dashboard-providers
+          configMap:
+            name: grafana-dashboard-providers
+        - name: grafana-dashboards
+          configMap:
+            name: grafana-dashboards
 ---
 apiVersion: v1
 kind: Service
