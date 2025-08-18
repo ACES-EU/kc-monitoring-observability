@@ -1,4 +1,4 @@
-isProdEnvironment: false
+isProdEnvironment: true
 
 prometheus:
   image: prom/prometheus:latest
