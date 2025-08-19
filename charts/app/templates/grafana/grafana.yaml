@@ -35,7 +35,7 @@ spec:
               mountPath: {{ .Values.grafana.mountPaths.datasource }}
             - name: grafana-config
               mountPath: {{ .Values.grafana.mountPaths.config }}
-            # - name: grafana-dashboard-providers
+            # - name: grafana-dashboard-providers # This way dashboards mouneted in read-only mode
             #   mountPath: {{ .Values.grafana.mountPaths.dashboardProviders }}
             - name: grafana-dashboards
               mountPath: {{ .Values.grafana.mountPaths.dashboards }} # dashboard JSON files will be placed here
@@ -74,10 +74,10 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: grafana-dashboards-importer
+  name: grafana-dashboards-importer-{{ now | unixEpoch }}
 spec:
   backoffLimit: 2
-  ttlSecondsAfterFinished: 100
+  ttlSecondsAfterFinished: 500
   template:
     spec:
       restartPolicy: Never
