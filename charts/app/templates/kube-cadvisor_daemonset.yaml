@@ -1,4 +1,3 @@
-{{- if eq .Values.isProdEnvironment false }}
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -45,4 +44,3 @@ spec:
         - name: docker
           hostPath:
             path: /var/lib/docker
-{{- end }}

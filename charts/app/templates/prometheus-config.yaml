@@ -93,8 +93,7 @@ data:
             action: keep
             regex: 'kube-scheduler;kube-system'
 
-      # Scrape metrics from cAdvisor(only for non-production environments)
-      {{- if eq .Values.isProdEnvironment false }}
+      # Scrape metrics from cAdvisor
       - job_name: 'cadvisor'
         kubernetes_sd_configs:
           - role: pod
@@ -105,7 +104,6 @@ data:
           - source_labels: [__meta_kubernetes_pod_ip]
             target_label: __address__
             replacement: $1:8080
-      {{- end }}
 
       # Scrape node metrics (node_exporter)
       - job_name: 'node'

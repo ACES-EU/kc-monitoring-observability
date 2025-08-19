@@ -35,43 +35,10 @@ spec:
               mountPath: {{ .Values.grafana.mountPaths.datasource }}
             - name: grafana-config
               mountPath: {{ .Values.grafana.mountPaths.config }}
-            # - name: grafana-dashboard-providers
-            #   mountPath: {{ .Values.grafana.mountPaths.dashboardProviders }}
+            - name: grafana-dashboard-providers
+              mountPath: {{ .Values.grafana.mountPaths.dashboardProviders }}
             - name: grafana-dashboards
               mountPath: {{ .Values.grafana.mountPaths.dashboards }} # dashboard JSON files will be placed here
-        # - name: grafana-dashboards-importer
-        #   image: alpine:3.20
-        #   command:
-        #     - /bin/sh
-        #     - -c
-        #     - |
-        #       set -euo pipefail
-        #       echo "Installing dependencies..."
-        #       apk add --no-cache curl jq
-
-        #       for file in {{ .Values.grafana.mountPaths.dashboards }}/*.json; do
-        #         echo "Importing $file"
-        #         if [ ! -s "$file" ]; then
-        #           echo "Skipping empty file $file"
-        #           continue
-        #         fi
-        #         DASHBOARD=$(jq -c . < "$file" || true)
-        #         if [ -z "$DASHBOARD" ]; then
-        #           echo "Failed to parse $file"
-        #           continue
-        #         fi
-        #         echo "Dashboard content: $DASHBOARD"
-        #         curl -s -X POST http://{{ .Values.grafana.gFSecurityAdminUser }}:{{ .Values.grafana.gFSecurityAdminPassword }}@localhost:3000/api/dashboards/db \
-        #           -H "Content-Type: application/json" \
-        #           -d "{\"dashboard\": $DASHBOARD, \"overwrite\": true}" \
-        #           && echo "\nImported $file" \
-        #           || echo "\nFailed to import $file"
-        #       done
-        #       echo "All dashboards processed. Exiting cleanly."
-        #       exit 0
-        #   volumeMounts:
-        #     - name: grafana-dashboards
-        #       mountPath: /tmp/dashboards
       volumes:
         - name: grafana-storage
           persistentVolumeClaim:
@@ -82,9 +49,9 @@ spec:
         - name: grafana-config
           configMap:
             name: grafana-config
-        # - name: grafana-dashboard-providers
-        #   configMap:
-        #     name: grafana-dashboard-providers
+        - name: grafana-dashboard-providers
+          configMap:
+            name: grafana-dashboard-providers
         - name: grafana-dashboards
           configMap:
             name: grafana-dashboards

@@ -1,5 +1,3 @@
-isProdEnvironment: true
-
 prometheus:
   image: prom/prometheus:latest
 
@@ -39,8 +37,8 @@ grafana:
     datasource: /etc/grafana/provisioning/datasources
     config: /etc/grafana
     dashboardProviders: /etc/grafana/provisioning/dashboards
-    # dashboards: /var/lib/grafana/dashboards
-    dashboards: /tmp/dashboards
+    dashboards: /var/lib/grafana/dashboards
+    # dashboards: /tmp/dashboards
   service:
     name: grafana
     port: 3000
