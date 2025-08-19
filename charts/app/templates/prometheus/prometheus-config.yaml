@@ -16,7 +16,7 @@ data:
       # Scrape kube-state-metrics for pod resource metrics
       - job_name: 'kube-state-metrics'
         static_configs:
-          - targets: ['kube-state-metrics:8080']
+          - targets: ['{{ .Values.kubeStateMetrics.service.name }}:8080']
 
       # Scrape kubelet metrics from all nodes
       - job_name: 'kubelet'
