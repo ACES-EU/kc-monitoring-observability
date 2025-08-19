@@ -35,8 +35,8 @@ spec:
               mountPath: {{ .Values.grafana.mountPaths.datasource }}
             - name: grafana-config
               mountPath: {{ .Values.grafana.mountPaths.config }}
-            - name: grafana-dashboard-providers
-              mountPath: {{ .Values.grafana.mountPaths.dashboardProviders }}
+            # - name: grafana-dashboard-providers
+            #   mountPath: {{ .Values.grafana.mountPaths.dashboardProviders }}
             - name: grafana-dashboards
               mountPath: {{ .Values.grafana.mountPaths.dashboards }} # dashboard JSON files will be placed here
       volumes:
@@ -49,9 +49,9 @@ spec:
         - name: grafana-config
           configMap:
             name: grafana-config
-        - name: grafana-dashboard-providers
-          configMap:
-            name: grafana-dashboard-providers
+        # - name: grafana-dashboard-providers
+        #   configMap:
+        #     name: grafana-dashboard-providers
         - name: grafana-dashboards
           configMap:
             name: grafana-dashboards
