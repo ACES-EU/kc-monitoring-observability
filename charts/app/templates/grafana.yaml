@@ -114,6 +114,18 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      initContainers:
+        - name: wait-for-grafana
+          image: curlimages/curl:8.8.0
+          command:
+            - /bin/sh
+            - -c
+            - |
+              until curl -sf http://{{ .Values.grafana.service.name }}:{{ .Values.grafana.service.port }}/api/health; do
+                echo "Waiting for Grafana to be ready..."
+                sleep 5
+              done
+              echo "Grafana is up!"
       containers:
         - name: grafana-dashboards-importer
           image: alpine:3.20
