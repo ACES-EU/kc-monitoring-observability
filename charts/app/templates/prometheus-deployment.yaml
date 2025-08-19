@@ -54,8 +54,22 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /etc/prometheus
+            - name: prometheus-storage
+              mountPath: /prometheus
+            - name: token
+              mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              readOnly: true
       volumes:
         - name: config-volume
           configMap:
             name: prometheus-server-conf
             defaultMode: 420
+        - name: prometheus-storage
+          persistentVolumeClaim:
+            claimName: prometheus-pvc
+        - name: token
+          projected:
+            sources:
+              - serviceAccountToken:
+                  path: token
+                  expirationSeconds: 3600

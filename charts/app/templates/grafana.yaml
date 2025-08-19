@@ -14,9 +14,13 @@ spec:
       labels:
         app: {{ .Values.grafana.service.name }}
     spec:
+      securityContext:
+            fsGroup: 472
       containers:
         - name: {{ .Values.grafana.service.name }}
           image: {{ .Values.grafana.image }}
+          securityContext:
+            runAsUser: 472
           ports:
             - containerPort: 3000
           env:
