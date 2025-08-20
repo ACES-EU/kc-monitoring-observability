@@ -1,0 +1,52 @@
+name: Deploy to Kubernetes
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Kubeconfig
+        env:
+          HIRO_KUBE_CONFIG: ${{ secrets.HIRO_KUBE_CONFIG }}
+        run: |
+          if [ -z "$HIRO_KUBE_CONFIG" ]; then
+            echo "HIRO_KUBE_CONFIG secret is not set"
+            exit 1
+          fi
+          echo "$HIRO_KUBE_CONFIG" > kubeconfig.yaml
+
+      - name: Set Helm dry-run flag
+        id: helm-dry-run
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "flag=" >> $GITHUB_OUTPUT
+          else
+            echo "flag=--dry-run" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Deploy to Kubernetes
+        env:
+          MONITORING_NAMESPACE: ${{ vars.MONITORING_NAMESPACE }}
+        run: |
+          if [ -z "$MONITORING_NAMESPACE" ]; then
+            echo "MONITORING_NAMESPACE variable is not set"
+            exit 1
+          fi
+          helm upgrade --install monitoring-observability ./charts/app-0.3.0.tgz \
+          --kubeconfig=kubeconfig.yaml -n "$MONITORING_NAMESPACE" \
+          --post-renderer ./charts/app/add-common-labels.sh \
+          ${{ steps.helm-dry-run.outputs.flag }}
+
+      - name: Clean up
+        run: rm kubeconfig.yaml
