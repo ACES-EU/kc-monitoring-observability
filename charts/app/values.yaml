@@ -1,7 +1,7 @@
-isProdEnvironment: false
-
 prometheus:
   image: prom/prometheus:latest
+  service:
+    name: prometheus-service
 
 nats:
   image: nats:latest
@@ -22,6 +22,8 @@ prometheusNatsAdapter:
   natsUrl: nats://nats-server:4222
   natsStream: prometheus
   natsSubject: metrics
+  service:
+    name: prometheus-nats-adapter
 
 aggregationService:
   image: anejvovcakjob/aces:aggregation-service-jvm
@@ -34,6 +36,13 @@ grafana:
   image: grafana/grafana:latest
   gFSecurityAdminUser: admin
   gFSecurityAdminPassword: admin
+  mountPaths:
+    storage: /var/lib/grafana
+    datasource: /etc/grafana/provisioning/datasources
+    config: /etc/grafana
+    dashboardProviders: /etc/grafana/provisioning/dashboards
+    # dashboards: /var/lib/grafana/dashboards
+    dashboards: /tmp/dashboards
   service:
     name: grafana
     port: 3000

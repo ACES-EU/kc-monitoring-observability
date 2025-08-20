@@ -16,26 +16,50 @@ data:
       # Scrape kube-state-metrics for pod resource metrics
       - job_name: 'kube-state-metrics'
         static_configs:
-          - targets: ['kube-state-metrics:8080']
+          - targets: ['{{ .Values.kubeStateMetrics.service.name }}:8080']
 
       # Scrape kubelet metrics from all nodes
       - job_name: 'kubelet'
         scheme: https
         tls_config:
           insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         kubernetes_sd_configs:
           - role: node
         relabel_configs:
-          - source_labels: [__meta_kubernetes_node_name]
-            action: replace
-            target_label: instance
+          - source_labels: [__address__]
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
         metric_relabel_configs:
           - source_labels: [__name__]
             regex: "node_collector_|kubelet_|node_.*"
             action: keep
 
+      # Scrape metrics from the Kubernetes cAdvisor
+      - job_name: 'kubelet-cadvisor'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+        metric_relabel_configs:
+          - source_labels: [__name__]
+            regex: 'container_.*'
+            action: keep
+
       # Scrape metrics from the Kubernetes API server
       - job_name: 'kube-apiserver'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         kubernetes_sd_configs:
           - role: endpoints
         relabel_configs:
@@ -48,6 +72,7 @@ data:
         scheme: https
         tls_config:
           insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         kubernetes_sd_configs:
           - role: endpoints
         relabel_configs:
@@ -60,6 +85,7 @@ data:
         scheme: https
         tls_config:
           insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         kubernetes_sd_configs:
           - role: endpoints
         relabel_configs:
@@ -67,24 +93,7 @@ data:
             action: keep
             regex: 'kube-scheduler;kube-system'
 
-      # Scrape metrics from the Kubernetes cAdvisor
-      - job_name: 'kubelet-cadvisor'
-        scheme: https
-        tls_config:
-          insecure_skip_verify: true
-        kubernetes_sd_configs:
-          - role: node
-        relabel_configs:
-          - source_labels: [__meta_kubernetes_node_name]
-            action: replace
-            target_label: instance
-        metric_relabel_configs:
-          - source_labels: [__name__]
-            regex: 'container_.*'
-            action: keep
-
-      # Scrape metrics from cAdvisor(only for non-production environments)
-      {{- if eq .Values.isProdEnvironment false }}
+      # Scrape metrics from cAdvisor
       - job_name: 'cadvisor'
         kubernetes_sd_configs:
           - role: pod
@@ -95,13 +104,13 @@ data:
           - source_labels: [__meta_kubernetes_pod_ip]
             target_label: __address__
             replacement: $1:8080
-      {{- end }}
 
       # Scrape node metrics (node_exporter)
       - job_name: 'node'
         scheme: https
         tls_config:
           insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
         kubernetes_sd_configs:
           - role: node
         relabel_configs:
@@ -131,8 +140,11 @@ data:
       - job_name: 'orchestration-library'
         metrics_path: /metrics
         static_configs:
+          {{- if eq .Values.isProdEnvironment false }}
+          - targets: ['host.docker.internal:30015']
+          {{- else }}
           - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
-          # - targets: ['host.docker.internal:30015']
+          {{- end }}
 
     remote_write:
-      - url: "http://prometheus-nats-adapter:5000/receive"
+      - url: "http://{{ .Values.prometheusNatsAdapter.service.name }}:5000/receive"
