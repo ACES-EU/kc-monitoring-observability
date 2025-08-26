@@ -11,20 +11,18 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        kubeconfig_secret_name: [HIRO_KUBE_CONFIG_AWS, HIRO_KUBE_CONFIG_BASTON]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
 
       - name: Set up Kubeconfig
-        env:
-          HIRO_KUBE_CONFIG: ${{ secrets.HIRO_KUBE_CONFIG }}
         run: |
-          if [ -z "$HIRO_KUBE_CONFIG" ]; then
-            echo "HIRO_KUBE_CONFIG secret is not set"
-            exit 1
-          fi
-          echo "$HIRO_KUBE_CONFIG" > kubeconfig.yaml
+          mkdir -p ~/.kube
+          echo "${{ secrets[matrix.kubeconfig_secret_name] }}" > ~/.kube/${{ matrix.kubeconfig_secret_name }}
+          chmod 600 ~/.kube/${{ matrix.kubeconfig_secret_name }}
 
       - name: Set Helm dry-run flag
         id: helm-dry-run
@@ -38,15 +36,21 @@ jobs:
       - name: Deploy to Kubernetes
         env:
           MONITORING_NAMESPACE: ${{ vars.MONITORING_NAMESPACE }}
+          RELEASE_NAME: ${{ vars.MONITORING_RELEASE_NAME }} # used in post-renderer script
         run: |
           if [ -z "$MONITORING_NAMESPACE" ]; then
             echo "MONITORING_NAMESPACE variable is not set"
             exit 1
           fi
-          helm upgrade --install monitoring-observability ./charts/app-0.3.0.tgz \
-          --kubeconfig=kubeconfig.yaml -n "$MONITORING_NAMESPACE" \
-          --post-renderer ./charts/app/add-common-labels.sh \
-          ${{ steps.helm-dry-run.outputs.flag }}
+          if [ -z "$RELEASE_NAME" ]; then
+            echo "RELEASE_NAME variable is not set"
+            exit 1
+          fi
+          helm upgrade --install $RELEASE_NAME ./charts/app \
+            --post-renderer ./charts/app/add-common-labels.sh \
+            --kubeconfig ~/.kube/${{ matrix.kubeconfig_secret_name }} \
+            ${{ steps.helm-dry-run.outputs.flag }} \
+            -n "$MONITORING_NAMESPACE" --create-namespace \
 
       - name: Clean up
-        run: rm kubeconfig.yaml
+        run: rm -rf ~/.kube/${{ matrix.kubeconfig_secret_name }}
