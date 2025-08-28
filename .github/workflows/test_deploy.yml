@@ -1,10 +1,12 @@
-name: Test
+name: Deploy to Kubernetes
 
 on:
   push:
     branches:
       - main
   pull_request:
+    branches:
+      - "**"
 
 jobs:
   test:
@@ -63,3 +65,51 @@ jobs:
       - name: Tear down Docker Compose
         if: always()
         run: docker compose down
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        kubeconfig_secret_name: [HIRO_KUBE_CONFIG_AWS, HIRO_KUBE_CONFIG_BASTON]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets[matrix.kubeconfig_secret_name] }}" > ~/.kube/${{ matrix.kubeconfig_secret_name }}
+          chmod 600 ~/.kube/${{ matrix.kubeconfig_secret_name }}
+
+      - name: Set Helm dry-run flag
+        id: helm-dry-run
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+            echo "flag=" >> $GITHUB_OUTPUT
+          else
+            echo "flag=--dry-run" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Deploy to Kubernetes
+        env:
+          MONITORING_NAMESPACE: ${{ vars.MONITORING_NAMESPACE }}
+          RELEASE_NAME: ${{ vars.MONITORING_RELEASE_NAME }} # used in post-renderer script
+        run: |
+          if [ -z "$MONITORING_NAMESPACE" ]; then
+            echo "MONITORING_NAMESPACE variable is not set"
+            exit 1
+          fi
+          if [ -z "$RELEASE_NAME" ]; then
+            echo "RELEASE_NAME variable is not set"
+            exit 1
+          fi
+          helm upgrade --install $RELEASE_NAME ./charts/app \
+            --post-renderer ./charts/app/add-common-labels.sh \
+            --kubeconfig ~/.kube/${{ matrix.kubeconfig_secret_name }} \
+            -n "$MONITORING_NAMESPACE" --create-namespace \
+            --wait --debug \
+            ${{ steps.helm-dry-run.outputs.flag }}
+            
+
+      - name: Clean up
+        run: rm -rf ~/.kube/${{ matrix.kubeconfig_secret_name }}
