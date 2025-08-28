@@ -49,9 +49,9 @@ grafana:
     targetPort: 3000
     nodePort: 30005
   nginxReverseProxy:
-    name: nginx-reverse-proxy
+    name: grafana-nginx-reverse-proxy
     image: nginx:latest
-    configMapName: nginx-reverse-proxy-config
+    configMapName: grafana-nginx-reverse-proxy-config
     service:
       port: 8080
       targetPort: 8080
