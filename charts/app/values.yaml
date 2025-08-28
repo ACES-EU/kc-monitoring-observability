@@ -48,22 +48,21 @@ grafana:
     port: 3000
     targetPort: 3000
     nodePort: 30005
-  
-nginxReverseProxy:
-  name: nginx-reverse-proxy
-  image: nginx:latest
-  configMapName: nginx-reverse-proxy-config
-  service:
-    port: 8080
-    targetPort: 8080
-    nodePort: 30000
-  ingress:
-    enabled: true
-    className: nginx
-    host: grafana.aces.hiro-develop.nl
-    path: /
-    tls: true
-    tlsSecretName: grafana-tls-secret
+  nginxReverseProxy:
+    name: nginx-reverse-proxy
+    image: nginx:latest
+    configMapName: nginx-reverse-proxy-config
+    service:
+      port: 8080
+      targetPort: 8080
+      nodePort: 30000
+    ingress:
+      enabled: true
+      className: nginx
+      host: grafana.aces.hiro-develop.nl
+      path: /
+      tls: true
+      tlsSecretName: grafana-tls-secret
 
 ottelCollector:
   image: otel/opentelemetry-collector-contrib:latest
