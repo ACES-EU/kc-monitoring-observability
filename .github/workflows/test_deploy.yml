@@ -126,6 +126,7 @@ jobs:
             ${{ steps.helm-app-access.outputs.grafana_service_nodePort }} \
             ${{ steps.helm-app-access.outputs.grafana_ingress_enabled }} \
             ${{ steps.helm-app-access.outputs.grafana_ingress_host }} \
+            --timeout=600s --wait --debug \
             ${{ steps.helm-dry-run.outputs.flag }}
             
 
