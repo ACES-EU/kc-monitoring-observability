@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.nginxReverseProxy.configMapName }}
+  name: {{ .Values.grafana.nginxReverseProxy.configMapName }}
 data:
   nginx.conf: |
     events {}
 
     http {
         server {
-            listen {{ .Values.nginxReverseProxy.service.targetPort }};
+            listen {{ .Values.grafana.nginxReverseProxy.service.targetPort }};
 
             location / {
                 proxy_pass http://{{ .Values.grafana.service.name }}:{{ .Values.grafana.service.port }};
