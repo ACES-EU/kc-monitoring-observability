@@ -49,8 +49,10 @@ jobs:
           helm upgrade --install $RELEASE_NAME ./charts/app \
             --post-renderer ./charts/app/add-common-labels.sh \
             --kubeconfig ~/.kube/${{ matrix.kubeconfig_secret_name }} \
-            ${{ steps.helm-dry-run.outputs.flag }} \
             -n "$MONITORING_NAMESPACE" --create-namespace \
+            --wait --debug \
+            ${{ steps.helm-dry-run.outputs.flag }}
+            
 
       - name: Clean up
         run: rm -rf ~/.kube/${{ matrix.kubeconfig_secret_name }}
