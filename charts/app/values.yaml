@@ -85,3 +85,29 @@ quarkusApp3:
   customersApiUrl: http://quarkus-app-1:8082/v1
   port: 8084
   targetPort: 8080
+
+prometheusScrapeServices:
+  # Scrape Quarkus Applications
+  - job_name: 'quarkus-apps'
+    metrics_path: /v1/metrics
+    static_configs:
+      - targets:
+          - 'quarkus-app-1:8082'
+          - 'quarkus-app-2:8083'
+          - 'quarkus-app-3:8084'
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '(.+):.+'
+        target_label: app
+        replacement: '$1'
+      - source_labels: [__address__]
+        regex: '.+:(.+)'
+        target_label: port
+        replacement: '$1'
+      
+    # Scrape Orchestration Library
+  - job_name: 'orchestration-library'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
+
