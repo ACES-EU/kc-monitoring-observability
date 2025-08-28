@@ -89,6 +89,29 @@ jobs:
           else
             echo "flag=--dry-run" >> $GITHUB_OUTPUT
           fi
+
+      - name: Set Helm values for Service type and Ingress
+        id: helm-app-access
+        run: |
+          if [[ "${{ matrix.kubeconfig_secret_name }}" == "HIRO_KUBE_CONFIG_AWS" ]]; then
+            echo "grafana_service_type=--set nginxReverseProxy.service.type=NodePort" >> $GITHUB_OUTPUT
+            echo "grafana_service_nodePort=--set nginxReverseProxy.service.nodePort=${{ vars.GRAFANA_NODE_PORT }}" >> $GITHUB_OUTPUT
+            echo "orchestrator_ui_ingress_enabled=--set app.ingress.enabled=false" >> $GITHUB_OUTPUT
+            echo "orchestrator_ui_ingress_host=" >> $GITHUB_OUTPUT
+            echo "k8s_proxy_service_type=--set app.k8sProxy.service.type=NodePort" >> $GITHUB_OUTPUT
+            echo "k8s_proxy_service_nodePort=--set app.k8sProxy.service.nodePort=${{ vars.K8S_PROXY_NODE_PORT }}" >> $GITHUB_OUTPUT
+            echo "k8s_proxy_ingress_enabled=--set app.k8sProxy.ingress.enabled=false" >> $GITHUB_OUTPUT
+            echo "k8s_proxy_ingress_host=" >> $GITHUB_OUTPUT
+          else
+            echo "orchestrator_ui_service_type=--set app.service.type=ClusterIP" >> $GITHUB_OUTPUT
+            echo "orchestrator_ui_service_nodePort=" >> $GITHUB_OUTPUT
+            echo "orchestrator_ui_ingress_enabled=--set app.ingress.enabled=true" >> $GITHUB_OUTPUT
+            echo "orchestrator_ui_ingress_host=--set app.ingress.host=${{ vars.ORCHESTRATOR_LIBRARY_UI_INGRESS_HOST }}" >> $GITHUB_OUTPUT
+            echo "k8s_proxy_service_type=--set app.k8sProxy.service.type=ClusterIP" >> $GITHUB_OUTPUT
+            echo "k8s_proxy_service_nodePort=" >> $GITHUB_OUTPUT
+            echo "k8s_proxy_ingress_enabled=--set app.k8sProxy.ingress.enabled=true" >> $GITHUB_OUTPUT
+            echo "k8s_proxy_ingress_host=--set app.k8sProxy.ingress.host=${{ vars.K8S_PROXY_INGRESS_HOST }}" >> $GITHUB_OUTPUT
+          fi
           
       - name: Deploy to Kubernetes
         env:

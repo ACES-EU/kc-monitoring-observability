@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: nginx-reverse-proxy
+  name: {{ .Values.nginxReverseProxy.name }}
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: nginx-reverse-proxy
+      app: {{ .Values.nginxReverseProxy.name }}
   template:
     metadata:
       labels:
-        app: nginx-reverse-proxy
+        app: {{ .Values.nginxReverseProxy.name }}
     spec:
       containers:
         - name: nginx
@@ -28,10 +28,10 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: nginx-reverse-proxy
+  name: {{ .Values.nginxReverseProxy.name }}
 spec:
   selector:
-    app: nginx-reverse-proxy
+    app: {{ .Values.nginxReverseProxy.name }}
   type: NodePort
   ports:
     - protocol: TCP

@@ -1,0 +1,31 @@
+{{- if .Values.nginxReverseProxy.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  name: {{ .Values.nginxReverseProxy.name }}-ingress
+  labels:
+    app: {{ .Values.nginxReverseProxy.name }}
+spec:
+  {{- if .Values.nginxReverseProxy.ingress.className }}
+  ingressClassName: {{ .Values.nginxReverseProxy.ingress.className }}
+  {{- end }}
+  rules:
+    - host: {{ .Values.nginxReverseProxy.ingress.host }}
+      http:
+        paths:
+          - path: {{ .Values.nginxReverseProxy.ingress.path }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ .Values.nginxReverseProxy.name }}
+                port:
+                  number: {{ .Values.nginxReverseProxy.service.port }}
+  {{- if .Values.nginxReverseProxy.ingress.tls }}
+  tls:
+    - hosts:
+        - {{ .Values.nginxReverseProxy.ingress.host }}
+      secretName: {{ .Values.nginxReverseProxy.ingress.tlsSecretName }}
+  {{- end }}
+{{- end }}
