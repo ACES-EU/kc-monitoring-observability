@@ -28,6 +28,13 @@ spec:
               value: {{ .Values.prometheusNatsAdapter.natsStream }}
             - name: NATS_SUBJECT
               value: {{ .Values.prometheusNatsAdapter.natsSubject }}
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
       restartPolicy: Always
 
 ---
