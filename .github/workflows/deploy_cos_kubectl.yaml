@@ -20,14 +20,14 @@ jobs:
 
       - name: Set up Kubeconfig
         run: |
-          mkdir -p ~/.kube
-          echo "${{ secrets[matrix.kubeconfig_secret_name] }}" > ~/.kube/${{ matrix.kubeconfig_secret_name }}
-          chmod 600 ~/.kube/${{ matrix.kubeconfig_secret_name }}
+          mkdir -p $HOME/.kube
+          echo "${{ secrets[matrix.kubeconfig_secret_name] }}" > $HOME/.kube/${{ matrix.kubeconfig_secret_name }}
+          chmod 600 $HOME/.kube/${{ matrix.kubeconfig_secret_name }}
 
       - name: Debug kubeconfig
         run: |
-            ls -l ~/.kube
-            cat ~/.kube/${{ matrix.kubeconfig_secret_name }} || true
+            ls -l $HOME/.kube
+            cat $HOME/.kube/${{ matrix.kubeconfig_secret_name }} || true
             
       - name: Set kubectl dry-run flag
         id: kubectl-dry-run
@@ -41,7 +41,7 @@ jobs:
       - name: Deploy COS YAMLs using kubectl
         env:
           COS_NAMESPACE: ${{ vars.COS_NAMESPACE }}
-          KUBE_CONFIG_PATH: ~/.kube/${{ matrix.kubeconfig_secret_name }}
+          KUBE_CONFIG_PATH: $HOME/.kube/${{ matrix.kubeconfig_secret_name }}
         run: |
           if [ -z "$COS_NAMESPACE" ]; then
             echo "COS_NAMESPACE variable is not set"
@@ -51,4 +51,4 @@ jobs:
           kubectl apply ${{ steps.kubectl-dry-run.outputs.flag }} --kubeconfig $KUBE_CONFIG_PATH -n "$COS_NAMESPACE" -f ./cos/out_rendered_tamplate_cos.yaml
 
       - name: Clean up
-        run: rm -rf ~/.kube/${{ matrix.kubeconfig_secret_name }}
+        run: rm -rf $HOME/.kube/${{ matrix.kubeconfig_secret_name }}
