@@ -1,0 +1,35 @@
+name: Deploy COS Resources
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Kubeconfig
+      - name: Set up Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      # Step 3: Deploy resources using kubectl
+      - name: Deploy COS resources
+        run: |
+          kubectl apply -f cos/out_rendered_tamplate_cos.yaml
+
+      # Step 4: Verify deployment
+      - name: Verify deployment
+        run: |
+          kubectl get all -n ${{ vars.MONITORING_NAMESPACE }}

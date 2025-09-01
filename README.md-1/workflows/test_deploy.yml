@@ -1,0 +1,31 @@
+name: Deploy to Kubernetes using kubectl
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy Kubernetes resources
+        run: |
+          kubectl apply -f cos/out_rendered_tamplate_cos.yaml
+
+      - name: Verify deployment
+        run: |
+          kubectl get all -n ${{ vars.MONITORING_NAMESPACE }}
