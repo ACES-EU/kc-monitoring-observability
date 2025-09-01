@@ -24,6 +24,11 @@ jobs:
           echo "${{ secrets[matrix.kubeconfig_secret_name] }}" > ~/.kube/${{ matrix.kubeconfig_secret_name }}
           chmod 600 ~/.kube/${{ matrix.kubeconfig_secret_name }}
 
+      - name: Debug kubeconfig
+        run: |
+            ls -l ~/.kube
+            cat ~/.kube/${{ matrix.kubeconfig_secret_name }} || true
+            
       - name: Set kubectl dry-run flag
         id: kubectl-dry-run
         run: |
@@ -42,7 +47,7 @@ jobs:
             echo "COS_NAMESPACE variable is not set"
             exit 1
           fi
-          kubectl create namespace "$COS_NAMESPACE" --dry-run=client -o yaml | kubectl apply --kubeconfig $KUBE_CONFIG_PATH -f -
+          kubectl create namespace "$COS_NAMESPACE" --dry-run=client -o yaml --kubeconfig $KUBE_CONFIG_PATH | kubectl apply --kubeconfig $KUBE_CONFIG_PATH -f -
           kubectl apply ${{ steps.kubectl-dry-run.outputs.flag }} --kubeconfig $KUBE_CONFIG_PATH -n "$COS_NAMESPACE" -f ./cos/out_rendered_tamplate_cos.yaml
 
       - name: Clean up
