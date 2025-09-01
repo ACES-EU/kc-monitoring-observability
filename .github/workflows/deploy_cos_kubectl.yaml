@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        kubeconfig_secret_name: [HIRO_KUBE_CONFIG_AWS, HIRO_KUBE_CONFIG_BASTON]
+        kubeconfig_secret_name: [HIRO_KUBE_CONFIG_AWS]
     steps:
       - name: Checkout code
         uses: actions/checkout@v2

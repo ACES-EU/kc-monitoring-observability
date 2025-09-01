@@ -146,7 +146,53 @@ When deployed we can see a Grafana dashboard (assets available in `/demo-resourc
 - **OpenTelemetry collector**: Exposes a telemetry collection endpoint that is fed into the system. Exposed on port 8888.
 
 - **Grafana**: A visualization and dashboarding tool. It is accessible on port 3000.
+---
+---
 
+# Deploying COS Prometheus Configuration with kubectl
+
+This repository supports direct deployment of rendered Kubernetes YAML manifests for the COS (Cloud Observability Stack) Prometheus configuration using `kubectl`. This approach is useful for environments where Helm is not required or desired, and you want to apply pre-rendered manifests directly to your cluster.
+
+### How it works
+
+- The `cos/out_rendered_tamplate_cos.yaml` file contains all the necessary Kubernetes resources for deploying the COS Prometheus stack.
+- A dedicated GitHub Actions workflow (`.github/workflows/deploy_cos_kubectl.yaml`) automates the deployment of these manifests to your Kubernetes clusters.
+- The workflow supports both dry-run (for pull requests) and actual apply (for merges to `main`), ensuring safe and controlled deployments.
+
+### Deployment Steps
+
+#### Manual Deployment
+
+To manually deploy the COS Prometheus configuration using `kubectl`:
+
+```sh
+# Set your target namespace
+NAMESPACE=cos
+
+# Create the namespace if it doesn't exist
+kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+
+# Apply the rendered COS manifests
+kubectl apply -n $NAMESPACE -f cos/out_rendered_tamplate_cos.yaml
+```
+
+#### Automated Deployment (GitHub Actions)
+
+- On every pull request, the workflow runs `kubectl apply --dry-run=client` to validate the manifests without making changes.
+- On every push to `main`, the workflow applies the manifests to the target clusters using the provided kubeconfig secrets.
+
+You can find the workflow file at:
+```
+.github/workflows/deploy_cos_kubectl.yaml
+```
+
+#### Notes
+
+- Make sure the `COS_NAMESPACE` variable is set in your GitHub repository or Actions environment.
+- The workflow expects kubeconfig secrets for your clusters to be available as GitHub secrets.
+
+---
+For more details, see the [COS YAML file](cos/out_rendered_tamplate_cos.yaml) and the
 
 ## License
 
