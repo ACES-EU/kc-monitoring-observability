@@ -1,4 +1,4 @@
-name: Deploy to Kubernetes
+name: Deploy Helm Chart app to Kubernetes
 
 on:
   push:
