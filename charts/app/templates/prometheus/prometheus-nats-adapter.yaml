@@ -30,11 +30,11 @@ spec:
               value: {{ .Values.prometheusNatsAdapter.natsSubject }}
           resources:
             limits:
-              cpu: "500m"
-              memory: "1Gi"
+              cpu: "2"
+              memory: "2Gi"
             requests:
-              cpu: "500m"
-              memory: "1Gi"
+              cpu: "2"
+              memory: "2Gi"
       restartPolicy: Always
 
 ---
