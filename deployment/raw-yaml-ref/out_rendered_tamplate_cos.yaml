@@ -885,7 +885,7 @@ spec:
   sessionAffinity: None
   type: "ClusterIP"
 ---
-# Source: prometheus/charts/prometheus-node-exporter/templates/daemonset.yaml
+# Source: prometheus/charts/prometheus-node-exporter/templates/f.yaml
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
