@@ -1,21 +1,21 @@
-prometheus:
-  image: prom/prometheus:latest
-  service:
-    name: prometheus-service
+# prometheus:
+#   image: prom/prometheus:latest
+#   service:
+#     name: prometheus-service
 
 nats:
   image: nats:latest
 
-cadvisor:
-  image: gcr.io/cadvisor/cadvisor:v0.49.1
-  containerPort: 8080
+# cadvisor:
+#   image: gcr.io/cadvisor/cadvisor:v0.49.1
+#   containerPort: 8080
 
-kubeStateMetrics:
-  image: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.16.0
-  service:
-    name: kube-state-metrics
-    port: 8080
-    targetPort: 8080
+# kubeStateMetrics:
+#   image: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.16.0
+#   service:
+#     name: kube-state-metrics
+#     port: 8080
+#     targetPort: 8080
 
 prometheusNatsAdapter:
   image: anejvovcakjob/aces:prometheus-nats-adapter
@@ -24,6 +24,49 @@ prometheusNatsAdapter:
   natsSubject: metrics
   service:
     name: prometheus-nats-adapter
+
+prometheus:
+  server:
+    fullnameOverride: aces-prometheus-server
+    remoteWrite:
+    - url: "http://prometheus-nats-adapter:5000/receive" # Use the service name defined in prometheusNatsAdapter.service.name
+  serverFiles:
+    rules:
+      groups:
+        - name: custom_rules
+          rules:
+          - record: aces_pod_cpu_utilization
+            expr: sum by (pod) (rate(container_cpu_usage_seconds_total[5m]))
+          - record: aces_pod_memory_utilization
+            expr: sum by (pod) (rate(container_memory_working_set_bytes[5m]))
+          - record: aces_device_disk_utilization
+            expr: (sum by (device) (rate(container_fs_writes_bytes_total[5m]))) + (sum by (device) (rate(container_fs_reads_bytes_total[5m])))
+          - record: aces_interface_network_utilization
+            expr: (sum by (interface) (rate(container_network_transmit_bytes_total[5m]))) + (sum by (interface) (rate(container_network_receive_bytes_total[5m])))
+  extraScrapeConfigs: |
+    # Scrape Quarkus Applications
+    - job_name: 'quarkus-apps'
+      metrics_path: /v1/metrics
+      static_configs:
+        - targets:
+            - 'quarkus-app-1:8082'
+            - 'quarkus-app-2:8083'
+            - 'quarkus-app-3:8084'
+      relabel_configs:
+        - source_labels: [__address__]
+          regex: '(.+):.+'
+          target_label: app
+          replacement: '$1'
+        - source_labels: [__address__]
+          regex: '.+:(.+)'
+          target_label: port
+          replacement: '$1'
+        
+    # Scrape Orchestration Library
+    - job_name: 'orchestration-library'
+      metrics_path: /metrics
+      static_configs:
+        - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
 
 aggregationService:
   image: anejvovcakjob/aces:aggregation-service-jvm
@@ -93,28 +136,27 @@ quarkusApp3:
   port: 8084
   targetPort: 8080
 
-prometheusScrapeServices:
-  # Scrape Quarkus Applications
-  - job_name: 'quarkus-apps'
-    metrics_path: /v1/metrics
-    static_configs:
-      - targets:
-          - 'quarkus-app-1:8082'
-          - 'quarkus-app-2:8083'
-          - 'quarkus-app-3:8084'
-    relabel_configs:
-      - source_labels: [__address__]
-        regex: '(.+):.+'
-        target_label: app
-        replacement: '$1'
-      - source_labels: [__address__]
-        regex: '.+:(.+)'
-        target_label: port
-        replacement: '$1'
+# prometheusScrapeServices:
+#   # Scrape Quarkus Applications
+#   - job_name: 'quarkus-apps'
+#     metrics_path: /v1/metrics
+#     static_configs:
+#       - targets:
+#           - 'quarkus-app-1:8082'
+#           - 'quarkus-app-2:8083'
+#           - 'quarkus-app-3:8084'
+#     relabel_configs:
+#       - source_labels: [__address__]
+#         regex: '(.+):.+'
+#         target_label: app
+#         replacement: '$1'
+#       - source_labels: [__address__]
+#         regex: '.+:(.+)'
+#         target_label: port
+#         replacement: '$1'
       
-    # Scrape Orchestration Library
-  - job_name: 'orchestration-library'
-    metrics_path: /metrics
-    static_configs:
-      - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
-
+#     # Scrape Orchestration Library
+#   - job_name: 'orchestration-library'
+#     metrics_path: /metrics
+#     static_configs:
+#       - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
