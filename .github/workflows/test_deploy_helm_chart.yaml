@@ -104,7 +104,10 @@ jobs:
             echo "grafana_ingress_enabled=--set grafana.nginxReverseProxy.ingress.enabled=true" >> $GITHUB_OUTPUT
             echo "grafana_ingress_host=--set grafana.nginxReverseProxy.ingress.host=${{ vars.GRAFANA_INGRESS_HOST }}" >> $GITHUB_OUTPUT
           fi
-          
+
+      - name: Update Helm dependencies
+        run: helm dependency update ./charts/app
+
       - name: Deploy to Kubernetes
         env:
           MONITORING_NAMESPACE: ${{ vars.MONITORING_NAMESPACE }}
