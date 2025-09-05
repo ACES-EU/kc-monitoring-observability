@@ -27,3 +27,7 @@ dependencies:
     alias: prometheus # alias is used to refer to this dependency in values.yaml
     version: 25.0.0
     repository: https://prometheus-community.github.io/helm-charts
+  - name: grafana
+    alias: grafana # alias is used to refer to this dependency in values.yaml
+    version: 9.0.0
+    repository: https://grafana.github.io/helm-charts

@@ -1,21 +1,5 @@
-# prometheus:
-#   image: prom/prometheus:latest
-#   service:
-#     name: prometheus-service
-
 nats:
   image: nats:latest
-
-# cadvisor:
-#   image: gcr.io/cadvisor/cadvisor:v0.49.1
-#   containerPort: 8080
-
-# kubeStateMetrics:
-#   image: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.16.0
-#   service:
-#     name: kube-state-metrics
-#     port: 8080
-#     targetPort: 8080
 
 prometheusNatsAdapter:
   image: anejvovcakjob/aces:prometheus-nats-adapter
@@ -28,6 +12,9 @@ prometheusNatsAdapter:
 prometheus:
   server:
     fullnameOverride: aces-prometheus-server
+    service:
+      type: ClusterIP
+      servicePort: 80
     remoteWrite:
     - url: "http://prometheus-nats-adapter:5000/receive" # Use the service name defined in prometheusNatsAdapter.service.name
   serverFiles:
@@ -68,44 +55,70 @@ prometheus:
       static_configs:
         - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
 
+grafana:
+  fullnameOverride: aces-grafana
+  service:
+    type: ClusterIP
+    port: 3000
+    nodePort: 30005
+  adminUser: admin
+  adminPassword: admin
+  persistence:
+    enabled: true
+    type: pvc
+    size: 5Gi
+  grafana.ini:
+    security:
+      allow_embedding: true
+    auth.proxy:
+      enabled: true
+      header_name: X-WEBAUTH-USER
+      header_property: username
+      auto_sign_up: true
+    users:
+      auto_assign_org: true
+      auto_assign_org_role: Viewer
+  datasources:     # In the below url value: Use the full name override defined in prometheus.server.fullnameOverride and prometheus.server.service.servicePort as <servicePort>
+    datasources.yaml: 
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://aces-prometheus-server:80
+          isDefault: true
+          editable: true
+  sidecar:
+    dashboards:
+      enabled: true
+      editable: true
+      label: grafana_dashboard
+      labelValue: "auto"
+
+
+grafanaNginxReverseProxy:
+  name: grafana-nginx-reverse-proxy
+  image: nginx:latest
+  configMapName: grafana-nginx-reverse-proxy-config
+  grafanaService: http://aces-grafana:3000 # Use the full name override defined in grafana.fullnameOverride and grafana.service.servicePort as <servicePort>
+  service:
+    port: 8080
+    targetPort: 8080
+    nodePort: 30000
+  ingress:
+    enabled: true
+    className: nginx
+    host: grafana.aces.hiro-develop.nl
+    path: /
+    tls: true
+    tlsSecretName: grafana-tls-secret
+
 aggregationService:
   image: anejvovcakjob/aces:aggregation-service-jvm
   natsUrl: nats://nats-server:4222
   natsStream: prometheus
   natsInputSubjectPrefix: metrics
   natsOutputSubjectPrefix: aggregated_metrics
-
-grafana:
-  image: grafana/grafana:latest
-  gFSecurityAdminUser: admin
-  gFSecurityAdminPassword: admin
-  mountPaths:
-    storage: /var/lib/grafana
-    datasource: /etc/grafana/provisioning/datasources
-    config: /etc/grafana
-    dashboardProviders: /etc/grafana/provisioning/dashboards
-    # dashboards: /var/lib/grafana/dashboards
-    dashboards: /tmp/dashboards
-  service:
-    name: grafana
-    port: 3000
-    targetPort: 3000
-    nodePort: 30005
-  nginxReverseProxy:
-    name: grafana-nginx-reverse-proxy
-    image: nginx:latest
-    configMapName: grafana-nginx-reverse-proxy-config
-    service:
-      port: 8080
-      targetPort: 8080
-      nodePort: 30000
-    ingress:
-      enabled: true
-      className: nginx
-      host: grafana.aces.hiro-develop.nl
-      path: /
-      tls: true
-      tlsSecretName: grafana-tls-secret
 
 ottelCollector:
   image: otel/opentelemetry-collector-contrib:latest

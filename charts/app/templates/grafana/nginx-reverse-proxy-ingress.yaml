@@ -1,31 +1,31 @@
-{{- if .Values.grafana.nginxReverseProxy.ingress.enabled }}
+{{- if .Values.grafanaNginxReverseProxy.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-  name: {{ .Values.grafana.nginxReverseProxy.name }}-ingress
+  name: {{ .Values.grafanaNginxReverseProxy.name }}-ingress
   labels:
-    app: {{ .Values.grafana.nginxReverseProxy.name }}
+    app: {{ .Values.grafanaNginxReverseProxy.name }}
 spec:
-  {{- if .Values.grafana.nginxReverseProxy.ingress.className }}
-  ingressClassName: {{ .Values.grafana.nginxReverseProxy.ingress.className }}
+  {{- if .Values.grafanaNginxReverseProxy.ingress.className }}
+  ingressClassName: {{ .Values.grafanaNginxReverseProxy.ingress.className }}
   {{- end }}
   rules:
-    - host: {{ .Values.grafana.nginxReverseProxy.ingress.host }}
+    - host: {{ .Values.grafanaNginxReverseProxy.ingress.host }}
       http:
         paths:
-          - path: {{ .Values.grafana.nginxReverseProxy.ingress.path }}
+          - path: {{ .Values.grafanaNginxReverseProxy.ingress.path }}
             pathType: Prefix
             backend:
               service:
-                name: {{ .Values.grafana.nginxReverseProxy.name }}
+                name: {{ .Values.grafanaNginxReverseProxy.name }}
                 port:
-                  number: {{ .Values.grafana.nginxReverseProxy.service.port }}
-  {{- if .Values.grafana.nginxReverseProxy.ingress.tls }}
+                  number: {{ .Values.grafanaNginxReverseProxy.service.port }}
+  {{- if .Values.grafanaNginxReverseProxy.ingress.tls }}
   tls:
     - hosts:
-        - {{ .Values.grafana.nginxReverseProxy.ingress.host }}
-      secretName: {{ .Values.grafana.nginxReverseProxy.ingress.tlsSecretName }}
+        - {{ .Values.grafanaNginxReverseProxy.ingress.host }}
+      secretName: {{ .Values.grafanaNginxReverseProxy.ingress.tlsSecretName }}
   {{- end }}
 {{- end }}

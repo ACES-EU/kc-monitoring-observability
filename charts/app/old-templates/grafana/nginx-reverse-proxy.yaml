@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.grafana.nginxReverseProxy.name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.grafana.nginxReverseProxy.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.grafana.nginxReverseProxy.name }}
+    spec:
+      containers:
+        - name: nginx
+          image: {{ .Values.grafana.nginxReverseProxy.image }}
+          ports:
+            - containerPort: {{ .Values.grafana.nginxReverseProxy.service.targetPort }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ .Values.grafana.nginxReverseProxy.configMapName }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.grafana.nginxReverseProxy.name }}
+spec:
+  selector:
+    app: {{ .Values.grafana.nginxReverseProxy.name }}
+  type: NodePort
+  ports:
+    - protocol: TCP
+      port: {{ .Values.grafana.nginxReverseProxy.service.port }}
+      targetPort: {{ .Values.grafana.nginxReverseProxy.service.targetPort }}
+      nodePort: {{ .Values.grafana.nginxReverseProxy.service.nodePort }}
+
