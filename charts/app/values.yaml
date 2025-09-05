@@ -1,21 +1,5 @@
-prometheus:
-  image: prom/prometheus:latest
-  service:
-    name: prometheus-service
-
 nats:
   image: nats:latest
-
-cadvisor:
-  image: gcr.io/cadvisor/cadvisor:v0.49.1
-  containerPort: 8080
-
-kubeStateMetrics:
-  image: k8s.gcr.io/kube-state-metrics/kube-state-metrics:v2.16.0
-  service:
-    name: kube-state-metrics
-    port: 8080
-    targetPort: 8080
 
 prometheusNatsAdapter:
   image: anejvovcakjob/aces:prometheus-nats-adapter
@@ -25,44 +9,116 @@ prometheusNatsAdapter:
   service:
     name: prometheus-nats-adapter
 
+prometheus:
+  server:
+    fullnameOverride: aces-prometheus-server
+    service:
+      type: ClusterIP
+      servicePort: 80
+    remoteWrite:
+    - url: "http://prometheus-nats-adapter:5000/receive" # Use the service name defined in prometheusNatsAdapter.service.name
+  serverFiles:
+    rules:
+      groups:
+        - name: custom_rules
+          rules:
+          - record: aces_pod_cpu_utilization
+            expr: sum by (pod) (rate(container_cpu_usage_seconds_total[5m]))
+          - record: aces_pod_memory_utilization
+            expr: sum by (pod) (rate(container_memory_working_set_bytes[5m]))
+          - record: aces_device_disk_utilization
+            expr: (sum by (device) (rate(container_fs_writes_bytes_total[5m]))) + (sum by (device) (rate(container_fs_reads_bytes_total[5m])))
+          - record: aces_interface_network_utilization
+            expr: (sum by (interface) (rate(container_network_transmit_bytes_total[5m]))) + (sum by (interface) (rate(container_network_receive_bytes_total[5m])))
+  extraScrapeConfigs: |
+    # Scrape Quarkus Applications
+    - job_name: 'quarkus-apps'
+      metrics_path: /v1/metrics
+      static_configs:
+        - targets:
+            - 'quarkus-app-1:8082'
+            - 'quarkus-app-2:8083'
+            - 'quarkus-app-3:8084'
+      relabel_configs:
+        - source_labels: [__address__]
+          regex: '(.+):.+'
+          target_label: app
+          replacement: '$1'
+        - source_labels: [__address__]
+          regex: '.+:(.+)'
+          target_label: port
+          replacement: '$1'
+        
+    # Scrape Orchestration Library
+    - job_name: 'orchestration-library'
+      metrics_path: /metrics
+      static_configs:
+        - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
+
+grafana:
+  fullnameOverride: aces-grafana
+  service:
+    type: ClusterIP
+    port: 3000
+    nodePort: 30005
+  adminUser: admin
+  adminPassword: admin
+  persistence:
+    enabled: true
+    type: pvc
+    size: 5Gi
+  grafana.ini:
+    security:
+      allow_embedding: true
+    auth.proxy:
+      enabled: true
+      header_name: X-WEBAUTH-USER
+      header_property: username
+      auto_sign_up: true
+    users:
+      auto_assign_org: true
+      auto_assign_org_role: Viewer
+  datasources:     # In the below url value: Use the full name override defined in prometheus.server.fullnameOverride and prometheus.server.service.servicePort as <servicePort>
+    datasources.yaml: 
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://aces-prometheus-server:80
+          isDefault: true
+          editable: true
+  sidecar:
+    dashboards:
+      enabled: true
+      editable: true
+      label: grafana_dashboard
+      labelValue: "auto"
+
+
+grafanaNginxReverseProxy:
+  name: grafana-nginx-reverse-proxy
+  image: nginx:latest
+  configMapName: grafana-nginx-reverse-proxy-config
+  grafanaService: http://aces-grafana:3000 # Use the full name override defined in grafana.fullnameOverride and grafana.service.servicePort as <servicePort>
+  service:
+    port: 8080
+    targetPort: 8080
+    nodePort: 30000
+  ingress:
+    enabled: true
+    className: nginx
+    host: grafana.aces.hiro-develop.nl
+    path: /
+    tls: true
+    tlsSecretName: grafana-tls-secret
+
 aggregationService:
   image: anejvovcakjob/aces:aggregation-service-jvm
   natsUrl: nats://nats-server:4222
   natsStream: prometheus
   natsInputSubjectPrefix: metrics
   natsOutputSubjectPrefix: aggregated_metrics
-
-grafana:
-  image: grafana/grafana:latest
-  gFSecurityAdminUser: admin
-  gFSecurityAdminPassword: admin
-  mountPaths:
-    storage: /var/lib/grafana
-    datasource: /etc/grafana/provisioning/datasources
-    config: /etc/grafana
-    dashboardProviders: /etc/grafana/provisioning/dashboards
-    # dashboards: /var/lib/grafana/dashboards
-    dashboards: /tmp/dashboards
-  service:
-    name: grafana
-    port: 3000
-    targetPort: 3000
-    nodePort: 30005
-  nginxReverseProxy:
-    name: grafana-nginx-reverse-proxy
-    image: nginx:latest
-    configMapName: grafana-nginx-reverse-proxy-config
-    service:
-      port: 8080
-      targetPort: 8080
-      nodePort: 30000
-    ingress:
-      enabled: true
-      className: nginx
-      host: grafana.aces.hiro-develop.nl
-      path: /
-      tls: true
-      tlsSecretName: grafana-tls-secret
 
 ottelCollector:
   image: otel/opentelemetry-collector-contrib:latest
@@ -93,28 +149,27 @@ quarkusApp3:
   port: 8084
   targetPort: 8080
 
-prometheusScrapeServices:
-  # Scrape Quarkus Applications
-  - job_name: 'quarkus-apps'
-    metrics_path: /v1/metrics
-    static_configs:
-      - targets:
-          - 'quarkus-app-1:8082'
-          - 'quarkus-app-2:8083'
-          - 'quarkus-app-3:8084'
-    relabel_configs:
-      - source_labels: [__address__]
-        regex: '(.+):.+'
-        target_label: app
-        replacement: '$1'
-      - source_labels: [__address__]
-        regex: '.+:(.+)'
-        target_label: port
-        replacement: '$1'
+# prometheusScrapeServices:
+#   # Scrape Quarkus Applications
+#   - job_name: 'quarkus-apps'
+#     metrics_path: /v1/metrics
+#     static_configs:
+#       - targets:
+#           - 'quarkus-app-1:8082'
+#           - 'quarkus-app-2:8083'
+#           - 'quarkus-app-3:8084'
+#     relabel_configs:
+#       - source_labels: [__address__]
+#         regex: '(.+):.+'
+#         target_label: app
+#         replacement: '$1'
+#       - source_labels: [__address__]
+#         regex: '.+:(.+)'
+#         target_label: port
+#         replacement: '$1'
       
-    # Scrape Orchestration Library
-  - job_name: 'orchestration-library'
-    metrics_path: /metrics
-    static_configs:
-      - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
-
+#     # Scrape Orchestration Library
+#   - job_name: 'orchestration-library'
+#     metrics_path: /metrics
+#     static_configs:
+#       - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']

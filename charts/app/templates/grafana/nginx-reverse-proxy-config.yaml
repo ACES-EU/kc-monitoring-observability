@@ -1,17 +1,17 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.grafana.nginxReverseProxy.configMapName }}
+  name: {{ .Values.grafanaNginxReverseProxy.configMapName }}
 data:
   nginx.conf: |
     events {}
 
     http {
         server {
-            listen {{ .Values.grafana.nginxReverseProxy.service.targetPort }};
+            listen {{ .Values.grafanaNginxReverseProxy.service.targetPort }};
 
             location / {
-                proxy_pass http://{{ .Values.grafana.service.name }}:{{ .Values.grafana.service.port }};
+                proxy_pass http://{{ .Values.grafana.fullnameOverride }}:{{ .Values.grafana.service.port }};
                 proxy_set_header X-WEBAUTH-USER autologin_user;
                 proxy_set_header Host $host;
                 proxy_set_header X-Real-IP $remote_addr;
