@@ -94,15 +94,17 @@ jobs:
         id: helm-app-access
         run: |
           if [[ "${{ matrix.kubeconfig_secret_name }}" == "HIRO_KUBE_CONFIG_AWS" ]]; then
-            echo "grafana_service_type=--set grafanaNginxReverseProxy.service.type=NodePort" >> $GITHUB_OUTPUT
-            echo "grafana_service_nodePort=--set grafanaNginxReverseProxy.service.nodePort=${{ vars.GRAFANA_NODE_PORT }}" >> $GITHUB_OUTPUT
-            echo "grafana_ingress_enabled=--set grafanaNginxReverseProxy.ingress.enabled=false" >> $GITHUB_OUTPUT
-            echo "grafana_ingress_host=" >> $GITHUB_OUTPUT
+            echo "grafana_service_type=--set grafana.service.type=NodePort" >> $GITHUB_OUTPUT
+            echo "grafana_nginx_service_type=--set grafanaNginxReverseProxy.service.type=NodePort" >> $GITHUB_OUTPUT
+            echo "grafana_nginx_service_nodePort=--set grafanaNginxReverseProxy.service.nodePort=${{ vars.GRAFANA_NODE_PORT }}" >> $GITHUB_OUTPUT
+            echo "grafana_nginx_ingress_enabled=--set grafanaNginxReverseProxy.ingress.enabled=false" >> $GITHUB_OUTPUT
+            echo "grafana_nginx_ingress_host=" >> $GITHUB_OUTPUT
           else
-            echo "grafana_service_type=--set grafanaNginxReverseProxy.service.type=ClusterIP" >> $GITHUB_OUTPUT
-            echo "grafana_service_nodePort=" >> $GITHUB_OUTPUT
-            echo "grafana_ingress_enabled=--set grafanaNginxReverseProxy.ingress.enabled=true" >> $GITHUB_OUTPUT
-            echo "grafana_ingress_host=--set grafanaNginxReverseProxy.ingress.host=${{ vars.GRAFANA_INGRESS_HOST }}" >> $GITHUB_OUTPUT
+            echo "grafana_service_type=--set grafana.service.type=ClusterIP" >> $GITHUB_OUTPUT
+            echo "grafana_nginx_service_type=--set grafanaNginxReverseProxy.service.type=ClusterIP" >> $GITHUB_OUTPUT
+            echo "grafana_nginx_service_nodePort=" >> $GITHUB_OUTPUT
+            echo "grafana_nginx_ingress_enabled=--set grafanaNginxReverseProxy.ingress.enabled=true" >> $GITHUB_OUTPUT
+            echo "grafana_nginx_ingress_host=--set grafanaNginxReverseProxy.ingress.host=${{ vars.GRAFANA_INGRESS_HOST }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Update Helm dependencies
@@ -126,9 +128,10 @@ jobs:
             --kubeconfig ~/.kube/${{ matrix.kubeconfig_secret_name }} \
             -n "$MONITORING_NAMESPACE" --create-namespace \
             ${{ steps.helm-app-access.outputs.grafana_service_type }} \
-            ${{ steps.helm-app-access.outputs.grafana_service_nodePort }} \
-            ${{ steps.helm-app-access.outputs.grafana_ingress_enabled }} \
-            ${{ steps.helm-app-access.outputs.grafana_ingress_host }} \
+            ${{ steps.helm-app-access.outputs.grafana_nginx_service_type }} \
+            ${{ steps.helm-app-access.outputs.grafana_nginx_service_nodePort }} \
+            ${{ steps.helm-app-access.outputs.grafana_nginx_ingress_enabled }} \
+            ${{ steps.helm-app-access.outputs.grafana_nginx_ingress_host }} \
             --timeout=600s --wait --debug \
             ${{ steps.helm-dry-run.outputs.flag }}
             
