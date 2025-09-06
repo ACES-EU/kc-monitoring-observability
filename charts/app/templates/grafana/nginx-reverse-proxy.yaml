@@ -11,6 +11,9 @@ spec:
     metadata:
       labels:
         app: {{ .Values.grafanaNginxReverseProxy.name }}
+      annotations:
+        # this ensures pod restarts automatically when configmap changes
+        checksum/config: {{ include "grafanaNginxReverseProxy.configMap" . | sha256sum }}
     spec:
       containers:
         - name: nginx

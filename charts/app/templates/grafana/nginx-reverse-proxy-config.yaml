@@ -1,3 +1,4 @@
+{{- define "grafanaNginxReverseProxy.configMap" -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -20,4 +21,4 @@ data:
             }
         }
     }
-
+{{- end  }}
