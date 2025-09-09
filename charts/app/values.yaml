@@ -17,6 +17,8 @@ prometheus:
       servicePort: 80
     remoteWrite:
     - url: "http://prometheus-nats-adapter:5000/receive" # Use the service name defined in prometheusNatsAdapter.service.name
+  extraArgs:
+      - --web.enable-remote-write-receiver
   serverFiles:
     rules:
       groups:
