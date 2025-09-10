@@ -15,6 +15,8 @@ prometheus:
     service:
       type: ClusterIP
       servicePort: 80
+    extraArgs:
+      web.enable-remote-write-receiver: true
     remoteWrite:
     - url: "http://prometheus-nats-adapter:5000/receive" # Use the service name defined in prometheusNatsAdapter.service.name
   serverFiles:
@@ -128,23 +130,25 @@ ottelCollector:
   volumeMountPath: /etc/otel-collector-config.yaml
   volumeMountSubPath: otel-collector-config.yaml
 
-quarkusApp1:
-  image: anejvovcakjob/aces:microservice-demo
-  containerPort: 8080
-  customersApiUrl: http://quarkus-app-2:8083/v1
-  port: 8082
-  targetPort: 8080
+quarkusApp:
+  enabled: true
+  quarkusApp1:
+    image: anejvovcakjob/aces:microservice-demo
+    containerPort: 8080
+    customersApiUrl: http://quarkus-app-2:8083/v1
+    port: 8082
+    targetPort: 8080
 
-quarkusApp2:
-  image: anejvovcakjob/aces:microservice-demo
-  containerPort: 8080
-  customersApiUrl: http://quarkus-app-3:8084/v1
-  port: 8083
-  targetPort: 8080
+  quarkusApp2:
+    image: anejvovcakjob/aces:microservice-demo
+    containerPort: 8080
+    customersApiUrl: http://quarkus-app-3:8084/v1
+    port: 8083
+    targetPort: 8080
 
-quarkusApp3:
-  image: anejvovcakjob/aces:microservice-demo
-  containerPort: 8080
-  customersApiUrl: http://quarkus-app-1:8082/v1
-  port: 8084
-  targetPort: 8080
+  quarkusApp3:
+    image: anejvovcakjob/aces:microservice-demo
+    containerPort: 8080
+    customersApiUrl: http://quarkus-app-1:8082/v1
+    port: 8084
+    targetPort: 8080

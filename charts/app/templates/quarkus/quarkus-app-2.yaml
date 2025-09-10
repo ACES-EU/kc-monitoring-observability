@@ -1,3 +1,4 @@
+{{- if .Values.quarkusApp.enabled -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,12 +15,12 @@ spec:
     spec:
       containers:
         - name: quarkus-app-2
-          image: {{ .Values.quarkusApp2.image }}
+          image: {{ .Values.quarkusApp.quarkusApp2.image }}
           ports:
-            - containerPort: {{ .Values.quarkusApp2.containerPort }}
+            - containerPort: {{ .Values.quarkusApp.quarkusApp2.containerPort }}
           env:
             - name: CUSTOMERS_API_URL
-              value: {{ .Values.quarkusApp2.customersApiUrl }}
+              value: {{ .Values.quarkusApp.quarkusApp2.customersApiUrl }}
 ---
 apiVersion: v1
 kind: Service
@@ -31,5 +32,6 @@ spec:
   ports:
     - name: http
       protocol: TCP
-      port: {{ .Values.quarkusApp2.port }}
-      targetPort: {{ .Values.quarkusApp2.targetPort }}
+      port: {{ .Values.quarkusApp.quarkusApp2.port }}
+      targetPort: {{ .Values.quarkusApp.quarkusApp2.targetPort }}
+{{- end }}
