@@ -127,6 +127,7 @@ jobs:
             --post-renderer ./charts/app/add-common-labels.sh \
             --kubeconfig ~/.kube/${{ matrix.kubeconfig_secret_name }} \
             -n "$MONITORING_NAMESPACE" --create-namespace \
+            --set quarkusApp.enabled=false \
             ${{ steps.helm-app-access.outputs.grafana_service_type }} \
             ${{ steps.helm-app-access.outputs.grafana_nginx_service_type }} \
             ${{ steps.helm-app-access.outputs.grafana_nginx_service_nodePort }} \
