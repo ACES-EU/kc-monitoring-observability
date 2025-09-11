@@ -2,7 +2,7 @@ nats:
   image: nats:latest
 
 prometheusNatsAdapter:
-  image: vcianchini/prometheus-nats-adapter:0.5
+  image: vcianchini/prometheus-nats-adapter:0.10
   natsUrl: nats://nats-server:4222
   natsStream: prometheus
   natsSubject: metrics
