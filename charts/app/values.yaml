@@ -15,8 +15,9 @@ prometheus:
     service:
       type: ClusterIP
       servicePort: 80
-    extraArgs:
-      web.enable-remote-write-receiver: ""
+    extraFlags:
+      - web.enable-lifecycle
+      - web.enable-remote-write-receiver
     remoteWrite:
     - url: "http://prometheus-nats-adapter:5000/receive" # Use the service name defined in prometheusNatsAdapter.service.name
   serverFiles:
