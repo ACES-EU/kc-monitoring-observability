@@ -11,6 +11,8 @@ prometheusNatsAdapter:
 
 prometheus:
   server:
+    global:
+      scrape_interval: 15s
     fullnameOverride: aces-prometheus-server
     service:
       type: ClusterIP
