@@ -1,9 +1,22 @@
 nats:
-  image: nats:latest
+  container:
+    image:
+      tag: latest
+  config:
+    jetstream:
+      enabled: true
+      memoryStore:
+        enabled: true
+  service:
+    name: nats-server
+    nats:
+      enabled: true
+    monitor:
+      enabled: true
 
 prometheusNatsAdapter:
   image: vcianchini/prometheus-nats-adapter:0.10
-  natsUrl: nats://nats-server:4222
+  natsUrl: nats://nats-server:4222   # Use the service name defined in nats.service.name
   natsStream: prometheus
   natsSubject: metrics
   service:
