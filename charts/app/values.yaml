@@ -1,21 +1,22 @@
 nats:
-  image: nats:latest
-  jetstream:
-    storeDir: /data/jetstream
-    maxMemStore: 2Gb
-    maxFileStore: 10Gb
-  persistence:
-    size: 10Gi
-    storageClass: ""  # leave empty for default
+  container:
+    image:
+      tag: latest
+  config:
+    jetstream:
+      enabled: true
+      memoryStore:
+        enabled: true
   service:
-    type: ClusterIP
-    ports:
-      client: 4222
-      monitor: 8222
+    name: nats-server
+    nats:
+      enabled: true
+    monitor:
+      enabled: true
 
 prometheusNatsAdapter:
   image: vcianchini/prometheus-nats-adapter:0.10
-  natsUrl: nats://nats-server:4222
+  natsUrl: nats://nats-server:4222   # Use the service name defined in nats.service.name
   natsStream: prometheus
   natsSubject: metrics
   service:
