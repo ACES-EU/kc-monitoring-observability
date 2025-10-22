@@ -16,6 +16,10 @@ nats:
       enabled: true
     monitor:
       enabled: true
+  retention:
+    maxMsgs: 100000
+    maxBytes: 5GB
+    maxAge: 12h
 
 prometheusNatsAdapter:
   image: vcianchini/prometheus-nats-adapter:0.10
