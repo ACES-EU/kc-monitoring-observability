@@ -17,8 +17,8 @@ nats:
     monitor:
       enabled: true
   retention:
-    maxMsgs: 1000000
-    maxBytes: 5GB
+    maxMsgs: -1
+    maxBytes: 6GB
     maxAge: 24h
 
 prometheusNatsAdapter:
