@@ -8,9 +8,9 @@ nats:
       fileStore:
         enabled: true
         maxSize: 17Gi
-      pvc:
-        enabled: true
-        size: 20Gi
+        pvc:
+          enabled: true
+          size: 20Gi
       memoryStore:
         enabled: true
   service:
