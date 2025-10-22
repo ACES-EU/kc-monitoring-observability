@@ -1,0 +1,56 @@
+
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: configure-jetstream-retention
+    annotations:
+        "helm.sh/hook": post-install,post-upgrade
+        "helm.sh/hook-weight": "5"
+        "helm.sh/hook-delete-policy": before-hook-creation
+spec:
+    schedule: "*/1 * * * *"
+    jobTemplate:
+        spec:
+            template:
+                spec:
+                    containers:
+                    - name: nats-cli
+                      image: natsio/nats-box
+                      command: ["sh", "-c"]
+                      args:
+                        - |
+                            set -e
+                            echo "Waiting for NATS server to be ready..."
+                            for i in $(seq 1 30); do
+                                nc -z {{ .Values.nats.service.name }} 4222 && break
+                                echo "NATS not ready yet... retrying ($i)"
+                                sleep 2
+                            done
+
+                            if ! nc -z nats-server 4222; then
+                                echo "NATS server not reachable after timeout. Exiting."
+                                exit 1
+                            fi
+                            echo "NATS server is reachable. Proceeding to update retention policies."
+
+                            echo "Updating retention for all JetStream streams..."
+                            nats stream ls --server nats://{{ .Values.nats.service.name }}:4222
+                            streams=$(nats stream ls --server nats://{{ .Values.nats.service.name }}:4222 --json | jq -r '.[]')
+                            for stream in $streams; do
+                                ARGS="--server nats://{{ .Values.nats.service.name }}:4222 --discard old --force"
+                                {{- if .Values.nats.retention.maxMsgs }}
+                                ARGS="$ARGS --max-msgs {{ .Values.nats.retention.maxMsgs | int }}"
+                                {{- end }}
+                                {{- if .Values.nats.retention.maxBytes }}
+                                ARGS="$ARGS --max-bytes {{ .Values.nats.retention.maxBytes }}"
+                                {{- end }}
+                                {{- if .Values.nats.retention.maxAge }}
+                                ARGS="$ARGS --max-age {{ .Values.nats.retention.maxAge }}"
+                                {{- end }}
+
+                                echo "Editing stream: $stream with args: $ARGS"
+                                nats stream edit "$stream" $ARGS
+                            done
+
+                            echo "Retention update complete."
+                    restartPolicy: OnFailure
