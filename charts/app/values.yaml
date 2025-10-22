@@ -5,6 +5,10 @@ nats:
   config:
     jetstream:
       enabled: true
+      pvc:
+        enabled: true
+        size: 20Gi
+      maxSize: 15Gb
       memoryStore:
         enabled: true
   service:
