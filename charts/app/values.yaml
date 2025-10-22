@@ -8,7 +8,7 @@ nats:
       pvc:
         enabled: true
         size: 20Gi
-      maxSize: 15Gi
+      maxSize: 17Gi
       memoryStore:
         enabled: true
   service:
