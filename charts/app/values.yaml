@@ -28,13 +28,13 @@ nui:
     contexts:
       - name: aces-nats-context
         url: nats://nats-server:4222 # Use the service name defined in nats.service.name
-      - name: demo-nats-context
-        url: nats://nats-demo:4222
+      - name: public-nats
+        url: nats://demo.nats.io:4222
     items:
       - key: aces-nats-context.json
         path: aces-nats-context.json
-      - key: demo-nats-context.json
-        path: demo-nats-context.json
+      - key: public-nats.json
+        path: public-nats.json
 
 prometheusNatsAdapter:
   image: vcianchini/prometheus-nats-adapter:0.10
