@@ -21,6 +21,21 @@ nats:
     maxBytes: 6GB
     maxAge: 24h
 
+nui:
+  autoloadContexts: true
+  contextsVolume:
+    name: secret-cli-contexts-volume
+    contexts:
+      - name: aces-nats-context
+        url: nats://nats-server:4222 # Use the service name defined in nats.service.name
+      - name: public-nats
+        url: nats://demo.nats.io:4222
+    items:
+      - key: aces-nats-context.json
+        path: aces-nats-context.json
+      - key: public-nats.json
+        path: public-nats.json
+
 prometheusNatsAdapter:
   image: vcianchini/prometheus-nats-adapter:0.10
   natsUrl: nats://nats-server:4222   # Use the service name defined in nats.service.name
