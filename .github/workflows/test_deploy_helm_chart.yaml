@@ -133,6 +133,8 @@ jobs:
             ${{ steps.helm-app-access.outputs.grafana_nginx_service_nodePort }} \
             ${{ steps.helm-app-access.outputs.grafana_nginx_ingress_enabled }} \
             ${{ steps.helm-app-access.outputs.grafana_nginx_ingress_host }} \
+            --set nats.retention.maxBytes=${{ vars.NATS_MAX_RETENTION_BYTES }} \
+            --set nats.retention.maxAge=${{ vars.NATS_MAX_RETENTION_AGE }} \
             --timeout=600s --wait --debug \
             ${{ steps.helm-dry-run.outputs.flag }}
             
