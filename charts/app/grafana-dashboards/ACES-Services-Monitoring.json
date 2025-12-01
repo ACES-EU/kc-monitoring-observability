@@ -1,0 +1,249 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus",
+      "pluginName": "Prometheus"
+    }
+  ],
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "12.2.0-16952534486"
+    },
+    {
+      "type": "panel",
+      "id": "timeseries",
+      "name": "Time series",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "prometheus",
+      "name": "Prometheus",
+      "version": "1.0.0"
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Resource Management Service - Success vs Failure",
+      "pluginVersion": "12.2.0-16952534486",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "Success (2xx)",
+          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_request_decision\", status_code=~\"2..\"})"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "Failures (non-2xx)",
+          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_request_decision\", status_code!~\"2..\"})"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 0}
+            ]
+          },
+          "unit": "none",
+          "axisLabel": "Request Count"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Workload Action Manager - Success vs Failure",
+      "pluginVersion": "12.2.0-16952534486",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 8},
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "Success (2xx)",
+          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_action\", status_code=~\"2..\"})"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "Failures (non-2xx)",
+          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_action\", status_code!~\"2..\"})"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "red", "value": 0}
+            ]
+          },
+          "unit": "none",
+          "axisLabel": "Request Count"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3,
+      "type": "piechart",
+      "title": "Total API Calls (workload_request_decision)",
+      "pluginVersion": "12.2.0-16952534486",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "Success (2xx)",
+          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_request_decision\", status_code=~\"2..\"})"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "Failure (non-2xx)",
+          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_request_decision\", status_code!~\"2..\"})"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showLegend": true,
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "displayLabels": ["percent", "value", "name"]
+
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "axisLabel": "Request Count"
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4,
+      "type": "piechart",
+      "title": "Total API Calls (workload_action)",
+      "pluginVersion": "12.2.0-16952534486",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "Success (2xx)",
+          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_action\", status_code=~\"2..\"})"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "Failure (non-2xx)",
+          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_action\", status_code!~\"2..\"})"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "pieType": "pie",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showLegend": true,
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "single",
+          "sort": "none"
+        },
+        "displayLabels": ["percent", "value", "name"]
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "axisLabel": "Request Count"
+        },
+        "overrides": []
+      }
+    }
+  ],
+  "refresh": "15s",
+  "schemaVersion": 41,
+  "tags": [],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "ACES Services Monitoring",
+  "uid": "fastapi-custom-metrics-subset",
+  "version": 1,
+  "weekStart": ""
+}

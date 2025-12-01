@@ -96,7 +96,8 @@ prometheus:
     - job_name: 'orchestration-library'
       metrics_path: /metrics
       static_configs:
-        - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
+        # - targets: ['aces-orchestration-api.hiros.svc.cluster.local:80']
+        - targets: ['aces-orchestration-api.aces-orchestration-api.svc.cluster.local:80']
 
 grafana:
   fullnameOverride: aces-grafana
