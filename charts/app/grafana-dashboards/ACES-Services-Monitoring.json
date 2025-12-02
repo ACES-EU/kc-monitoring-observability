@@ -81,7 +81,11 @@
       "fieldConfig": {
         "defaults": {
           "color": {"mode": "palette-classic"},
-          "custom": {},
+          "custom": {
+            "axisCenteredZero": false,
+            "axisPlacement": "left",
+            "axisLabel": "Request Count"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
@@ -126,7 +130,11 @@
       "fieldConfig": {
         "defaults": {
           "color": {"mode": "palette-classic"},
-          "custom": {},
+          "custom": {
+            "axisCenteredZero": false,
+            "axisPlacement": "left",
+            "axisLabel": "Request Count"
+          },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
