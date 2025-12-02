@@ -61,12 +61,12 @@
         {
           "refId": "A",
           "legendFormat": "Success (2xx)",
-          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_request_decision\", status_code=~\"2..\"})"
+          "expr": "sum by (endpoint, status_code) (increase(api_requests_total{endpoint=\"/workload_request_decision\", status_code=~\"2..\"}[$__range]))"
         },
         {
           "refId": "B",
           "legendFormat": "Failures (non-2xx)",
-          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_request_decision\", status_code!~\"2..\"})"
+          "expr": "sum by (endpoint, status_code) (increase(api_requests_total{endpoint=\"/workload_request_decision\", status_code!~\"2..\"}[$__range]))"
         }
       ],
       "options": {
@@ -106,12 +106,12 @@
         {
           "refId": "A",
           "legendFormat": "Success (2xx)",
-          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_action\", status_code=~\"2..\"})"
+          "expr": "sum by (endpoint, status_code) (increase(api_requests_total{endpoint=\"/workload_action\", status_code=~\"2..\"}[$__range]))"
         },
         {
           "refId": "B",
           "legendFormat": "Failures (non-2xx)",
-          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_action\", status_code!~\"2..\"})"
+          "expr": "sum by (endpoint, status_code) (increase(api_requests_total{endpoint=\"/workload_action\", status_code!~\"2..\"}[$__range]))"
         }
       ],
       "options": {
@@ -144,19 +144,19 @@
     {
       "id": 3,
       "type": "piechart",
-      "title": "Total API Calls (workload_request_decision)",
+      "title": "Total API Calls (Resource Management Service)",
       "pluginVersion": "12.2.0-16952534486",
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
       "targets": [
         {
           "refId": "A",
           "legendFormat": "Success (2xx)",
-          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_request_decision\", status_code=~\"2..\"})"
+          "expr": "sum by (endpoint, status_code) (increase(api_requests_total{endpoint=\"/workload_request_decision\", status_code=~\"2..\"}[$__range]))"
         },
         {
           "refId": "B",
           "legendFormat": "Failure (non-2xx)",
-          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_request_decision\", status_code!~\"2..\"})"
+          "expr": "sum by (endpoint, status_code) (increase(api_requests_total{endpoint=\"/workload_request_decision\", status_code!~\"2..\"}[$__range]))"
         }
       ],
       "options": {
@@ -191,19 +191,19 @@
     {
       "id": 4,
       "type": "piechart",
-      "title": "Total API Calls (workload_action)",
+      "title": "Total API Calls (Workload Action Manager)",
       "pluginVersion": "12.2.0-16952534486",
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
       "targets": [
         {
           "refId": "A",
           "legendFormat": "Success (2xx)",
-          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_action\", status_code=~\"2..\"})"
+          "expr": "sum by (endpoint, status_code) (increase(api_requests_total{endpoint=\"/workload_action\", status_code=~\"2..\"}[$__range]))"
         },
         {
           "refId": "B",
           "legendFormat": "Failure (non-2xx)",
-          "expr": "sum by (endpoint, status_code) (api_requests_total{endpoint=\"/workload_action\", status_code!~\"2..\"})"
+          "expr": "sum by (endpoint, status_code) (increase(api_requests_total{endpoint=\"/workload_action\", status_code!~\"2..\"}[$__range]))"
         }
       ],
       "options": {
