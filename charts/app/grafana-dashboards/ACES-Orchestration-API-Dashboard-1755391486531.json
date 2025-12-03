@@ -59,10 +59,6 @@
   "links": [],
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
-      },
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -94,9 +90,7 @@
         },
         "pieType": "pie",
         "reduceOptions": {
-          "calcs": [
-            "lastNotNull"
-          ],
+          "calcs": ["lastNotNull"],
           "fields": "",
           "values": false
         },
@@ -112,11 +106,7 @@
         {
           "expr": "sum by (base_endpoint) (label_replace(api_requests_total, \"base_endpoint\", \"$1\", \"endpoint\", \"^(/workload_action|/alerts|/tuning_parameters|/workload_request_decision)\"))",
           "legendFormat": "{{base_endpoint}}",
-          "refId": "A",
-          "datasource": {
-            "type": "prometheus",
-            "uid": "${DS_PROMETHEUS}"
-          }
+          "refId": "A"
         }
       ],
       "title": "Total Requests (Pie Chart)",
@@ -148,42 +138,24 @@
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
+            "scaleDistribution": {"type": "linear"},
             "showPoints": "auto",
             "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
             ]
           }
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 15,
-        "x": 9,
-        "y": 0
-      },
+      "gridPos": {"h": 8, "w": 15, "x": 9, "y": 0},
       "id": 1,
       "options": {
         "legend": {
@@ -192,11 +164,7 @@
           "placement": "bottom",
           "showLegend": true
         },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
       },
       "pluginVersion": "12.2.0-16952534486",
       "targets": [
@@ -212,9 +180,7 @@
     {
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
+          "color": {"mode": "palette-classic"},
           "custom": {
             "axisBorderShow": false,
             "axisCenteredZero": false,
@@ -235,42 +201,24 @@
             "lineInterpolation": "linear",
             "lineWidth": 1,
             "pointSize": 5,
-            "scaleDistribution": {
-              "type": "linear"
-            },
+            "scaleDistribution": {"type": "linear"},
             "showPoints": "auto",
             "spanNulls": false,
-            "stacking": {
-              "group": "A",
-              "mode": "none"
-            },
-            "thresholdsStyle": {
-              "mode": "off"
-            }
+            "stacking": {"group": "A", "mode": "none"},
+            "thresholdsStyle": {"mode": "off"}
           },
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": 0
-              },
-              {
-                "color": "red",
-                "value": 80
-              }
+              {"color": "green", "value": 0},
+              {"color": "red", "value": 80}
             ]
           }
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 15,
-        "x": 9,
-        "y": 8
-      },
+      "gridPos": {"h": 8, "w": 15, "x": 9, "y": 8},
       "id": 2,
       "options": {
         "legend": {
@@ -279,11 +227,7 @@
           "placement": "bottom",
           "showLegend": true
         },
-        "tooltip": {
-          "hideZeros": false,
-          "mode": "single",
-          "sort": "none"
-        }
+        "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
       },
       "pluginVersion": "12.2.0-16952534486",
       "targets": [
@@ -295,22 +239,85 @@
       ],
       "title": "API Latency (P90)",
       "type": "timeseries"
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Resource Management Service - Success vs Failure",
+      "pluginVersion": "12.2.0-16952534486",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "Success (2xx)",
+          "expr": "sum by (status_code) (increase(api_requests_total{endpoint=\"/workload_request_decision\", status_code=~\"2..\"}[$__rate_interval]))"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "Failures (non-2xx)",
+          "expr": "sum by (status_code) (increase(api_requests_total{endpoint=\"/workload_request_decision\", status_code!~\"2..\"}[$__rate_interval]))"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Workload Action Manager - Success vs Failure",
+      "pluginVersion": "12.2.0-16952534486",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+      "targets": [
+        {
+          "refId": "A",
+          "legendFormat": "Success (2xx)",
+          "expr": "sum by (status_code) (increase(api_requests_total{endpoint=\"/workload_action\", status_code=~\"2..\"}[$__rate_interval]))"
+        },
+        {
+          "refId": "B",
+          "legendFormat": "Failures (non-2xx)",
+          "expr": "sum by (status_code) (increase(api_requests_total{endpoint=\"/workload_action\", status_code!~\"2..\"}[$__rate_interval]))"
+        }
+      ],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"}
+        },
+        "overrides": []
+      }
     }
   ],
   "refresh": "15s",
   "schemaVersion": 41,
   "tags": [],
-  "templating": {
-    "list": []
-  },
-  "time": {
-    "from": "now-1h",
-    "to": "now"
-  },
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
   "timepicker": {},
   "timezone": "browser",
   "title": "ACES Orchestration API Dashboard",
   "uid": "fastapi-custom-metrics",
-  "version": 10,
+  "version": 11,
   "weekStart": ""
 }
