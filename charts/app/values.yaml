@@ -60,13 +60,13 @@ prometheus:
     persistentVolume:
       size: 20Gi
     retention: "5d"
-    # resources: 
-    #   requests:
-    #     memory: 2Gi
-    #     cpu: 50m
-    #   limits:
-    #     memory: 8Gi
-    #     cpu: 4
+    resources: 
+      requests:
+        memory: 2Gi
+        cpu: 50m
+      limits:
+        memory: 8Gi
+        cpu: 4
   serverFiles:
     rules:
       groups:
