@@ -59,7 +59,7 @@ prometheus:
     - url: "http://prometheus-nats-adapter:5000/receive" # Use the service name defined in prometheusNatsAdapter.service.name
     persistentVolume:
       size: 20Gi
-    retention: "5d"
+    retention: "3d"
     resources: 
       requests:
         memory: 2Gi
