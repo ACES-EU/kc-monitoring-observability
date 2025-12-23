@@ -30,7 +30,7 @@ spec:
               value: {{ .Values.prometheusNatsAdapter.natsSubject }}
           resources:
             limits:
-              memory: "4Gi"
+              memory: "8Gi"
             requests:
               memory: "4Gi"
       restartPolicy: Always
