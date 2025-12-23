@@ -22,6 +22,20 @@ nats:
     maxAge: 24h
 
 nui:
+  ingress:
+    enabled: false
+    className: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - host: nui.aces.hiro-develop.nl
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: nui-tls-secret
+        hosts:
+          - nui.aces.hiro-develop.nl
   autoloadContexts: true
   contextsVolume:
     name: secret-cli-contexts-volume
@@ -59,7 +73,7 @@ prometheus:
     - url: "http://prometheus-nats-adapter:5000/receive" # Use the service name defined in prometheusNatsAdapter.service.name
     persistentVolume:
       size: 20Gi
-    retention: "5d"
+    retention: "3d"
     resources: 
       requests:
         memory: 2Gi
