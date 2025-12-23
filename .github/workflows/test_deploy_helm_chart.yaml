@@ -99,12 +99,22 @@ jobs:
             echo "grafana_nginx_service_nodePort=--set grafanaNginxReverseProxy.service.nodePort=${{ vars.GRAFANA_NODE_PORT }}" >> $GITHUB_OUTPUT
             echo "grafana_nginx_ingress_enabled=--set grafanaNginxReverseProxy.ingress.enabled=false" >> $GITHUB_OUTPUT
             echo "grafana_nginx_ingress_host=" >> $GITHUB_OUTPUT
-          else
+            echo "nui_ingress_enabled=--set nui.ingress.enabled=false" >> $GITHUB_OUTPUT
+            echo "nui_ingress_className=--set nui.ingress.className=" >> $GITHUB_OUTPUT
+            echo "nui_ingress_host=--set nui.ingress.hosts[0].host=" >> $GITHUB_OUTPUT
+            echo "nui_ingress_tls=--set nui.ingress.tls[0].secretName=" >> $GITHUB_OUTPUT
+            echo "nui_ingress_tls_hosts=--set nui.ingress.tls[0].hosts[0]=" >> $GITHUB_OUTPUT
+            else
             echo "grafana_service_type=--set grafana.service.type=ClusterIP" >> $GITHUB_OUTPUT
             echo "grafana_nginx_service_type=--set grafanaNginxReverseProxy.service.type=ClusterIP" >> $GITHUB_OUTPUT
             echo "grafana_nginx_service_nodePort=" >> $GITHUB_OUTPUT
             echo "grafana_nginx_ingress_enabled=--set grafanaNginxReverseProxy.ingress.enabled=true" >> $GITHUB_OUTPUT
             echo "grafana_nginx_ingress_host=--set grafanaNginxReverseProxy.ingress.host=${{ vars.GRAFANA_INGRESS_HOST }}" >> $GITHUB_OUTPUT
+            echo "nui_ingress_enabled=--set nui.ingress.enabled=true" >> $GITHUB_OUTPUT
+            echo "nui_ingress_className=--set nui.ingress.className=nginx" >> $GITHUB_OUTPUT
+            echo "nui_ingress_host=--set nui.ingress.hosts[0].host=nui.aces.hiro-develop.nl" >> $GITHUB_OUTPUT
+            echo "nui_ingress_tls=--set nui.ingress.tls[0].secretName=nui-tls-secret" >> $GITHUB_OUTPUT
+            echo "nui_ingress_tls_hosts=--set nui.ingress.tls[0].hosts[0]=nui.aces.hiro-develop.nl" >> $GITHUB_OUTPUT
           fi
 
       - name: Update Helm dependencies
@@ -133,6 +143,11 @@ jobs:
             ${{ steps.helm-app-access.outputs.grafana_nginx_service_nodePort }} \
             ${{ steps.helm-app-access.outputs.grafana_nginx_ingress_enabled }} \
             ${{ steps.helm-app-access.outputs.grafana_nginx_ingress_host }} \
+            ${{ steps.helm-app-access.outputs.nui_ingress_enabled }} \
+            ${{ steps.helm-app-access.outputs.nui_ingress_className }} \
+            ${{ steps.helm-app-access.outputs.nui_ingress_host }} \
+            ${{ steps.helm-app-access.outputs.nui_ingress_tls }} \
+            ${{ steps.helm-app-access.outputs.nui_ingress_tls_hosts }} \
             --set nats.retention.maxBytes=${{ vars.NATS_MAX_RETENTION_BYTES }} \
             --set nats.retention.maxAge=${{ vars.NATS_MAX_RETENTION_AGE }} \
             --timeout=600s --wait --debug \
